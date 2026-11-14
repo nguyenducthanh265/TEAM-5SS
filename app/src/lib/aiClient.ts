@@ -16,7 +16,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 function clamp01(v: unknown): number {
-  const n = typeof v === 'number' ? v : Number(v);
+  const n = typeof v === 'number' ? v : Number.NaN;
   if (!Number.isFinite(n)) return 0;
   return Math.min(1, Math.max(0, n));
 }
@@ -32,14 +32,15 @@ function parseItem(raw: unknown): ClassifiedItem | null {
   const name = typeof raw.name === 'string' ? cut(raw.name, 40) : '';
   if (!name) return null;
   const rawGroup = typeof raw.groupId === 'string' ? raw.groupId : '';
-  const groupId = rawGroup !== 'unknown' && isValidGroupId(rawGroup) ? rawGroup : 'unknown';
+  const confidence = clamp01(raw.confidence);
+  const groupId = confidence >= 0.5 && rawGroup !== 'unknown' && isValidGroupId(rawGroup) ? rawGroup : 'unknown';
   const item: ClassifiedItem = {
     name,
     groupId,
-    confidence: clamp01(raw.confidence),
-    reason: typeof raw.reason === 'string' ? cut(raw.reason, 160) : '',
+    confidence,
+    reason: typeof raw.reason === 'string' ? cut(raw.reason, 120) : '',
   };
-  if (typeof raw.tip === 'string' && raw.tip.trim()) item.tip = cut(raw.tip, 120);
+  if (typeof raw.tip === 'string' && raw.tip.trim()) item.tip = cut(raw.tip, 80);
   if (raw.hazardous === true) item.hazardous = true;
   if (raw.sellable === true) item.sellable = true;
   if (raw.misplaced === true) item.misplaced = true;
@@ -98,7 +99,7 @@ export async function classifyImage(
       return { kind: 'busy', message: 'Máy chủ AI đang bận, thử lại sau vài giây.' };
     }
     const rawItems: unknown = data.items;
-    if (data.source !== 'ai' || !Array.isArray(rawItems)) {
+    if (data.source !== 'ai' || Boolean(data.error) || !Array.isArray(rawItems)) {
       const why = typeof data.error === 'string' && data.error ? ` (${cut(data.error, 80)})` : '';
       return { kind: 'fallback', message: `AI chưa trả lời được${why}.` };
     }
@@ -107,7 +108,7 @@ export async function classifyImage(
       const item = parseItem(raw);
       if (item) items.push(item);
     }
-    if (rawItems.length > 0 && items.length === 0) {
+    if (items.length !== rawItems.length) {
       return { kind: 'http', message: 'Máy chủ trả danh sách món sai định dạng.' };
     }
     const serverMs = typeof data.latencyMs === 'number' && Number.isFinite(data.latencyMs) ? data.latencyMs : null;
