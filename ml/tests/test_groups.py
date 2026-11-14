@@ -117,6 +117,10 @@ def test_postgres_backend_selected_when_database_url_set(c, monkeypatch):
                 cur["items"] += items
             elif "INSERT INTO ecohanoi_group_members" in q:
                 state["members"].add(params)
+            elif q.startswith("SELECT 1 FROM ecohanoi_groups"):
+                self._rows = [(1,)] if params[0] in state["groups"] else []
+            elif q.startswith("SELECT COUNT(*) FROM ecohanoi_groups"):
+                self._rows = [(len(state["groups"]),)]
             elif q.startswith("SELECT xp FROM ecohanoi_groups"):
                 g = state["groups"].get(params[0])
                 self._rows = [(g["xp"],)] if g else []
@@ -167,3 +171,22 @@ def test_postgres_backend_selected_when_database_url_set(c, monkeypatch):
     assert r1 == {"code": "PG-01", "xp": 40, "members": 1, "rank": 1, "top": [{"code": "PG-01", "xp": 40}]}
     assert all("raw-dev-1" not in m for _, m in state["members"])
     assert c.get("/groups/MISSING").status_code == 404
+
+    monkeypatch.setattr(groups, "MAX_GROUPS", 1)
+    assert _score(c, "pg-01", "raw-dev-2", 10).status_code == 200
+    r_full = _score(c, "pg-02", "raw-dev-1", 10)
+    assert r_full.status_code == 503
+    assert r_full.json() == {"error": "too_many_groups"}
+
+
+def test_max_groups_limit_ram(c, monkeypatch):
+    groups = importlib.import_module("serve.groups")
+    monkeypatch.setattr(groups, "MAX_GROUPS", 3)
+    for i in range(3):
+        assert _score(c, f"GRP-{i}", "dev-1", 10).status_code == 200
+    # Nhóm đã tồn tại vẫn cộng điểm bình thường
+    assert _score(c, "GRP-0", "dev-2", 5).status_code == 200
+    # Nhóm thứ MAX_GROUPS + 1 bị chặn 503 too_many_groups
+    r = _score(c, "GRP-OVER", "dev-1", 10)
+    assert r.status_code == 503
+    assert r.json() == {"error": "too_many_groups"}

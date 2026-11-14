@@ -161,6 +161,11 @@ def score(req: ScoreReq):
             _ensure_pg_schema(conn)
             with conn.transaction():
                 with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM ecohanoi_groups WHERE code = %s", (code,))
+                    if cur.fetchone() is None:
+                        cur.execute("SELECT COUNT(*) FROM ecohanoi_groups")
+                        if int(cur.fetchone()[0]) >= MAX_GROUPS:
+                            return JSONResponse({"error": "too_many_groups"}, status_code=503)
                     cur.execute(
                         """
                         INSERT INTO ecohanoi_groups (code, xp, items)
