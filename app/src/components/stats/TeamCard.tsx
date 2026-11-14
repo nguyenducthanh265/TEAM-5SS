@@ -149,8 +149,8 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
               </View>
               {info.top.length > 0 ? (
                 <View style={styles.board}>
-                  <Text style={styles.boardTitle}>Bảng xếp hạng</Text>
-                  {info.top.map((row, i) => {
+                  <Text style={styles.boardTitle}>Bảng xếp hạng (Top 5)</Text>
+                  {info.top.slice(0, 5).map((row, i) => {
                     const mine = row.code === info.code;
                     return (
                       <View key={`${row.code}:${i}`} style={styles.boardRow}>

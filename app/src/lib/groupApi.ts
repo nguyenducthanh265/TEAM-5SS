@@ -63,7 +63,7 @@ export async function postGroupScore(
   items: number,
 ): Promise<boolean> {
   const clean = normalizeGroupCode(code);
-  if (!clean || !isNum(xpDelta) || xpDelta <= 0) return false;
+  if (!clean || !deviceId.trim() || !isNum(xpDelta) || xpDelta <= 0) return false;
   const body = JSON.stringify({
     code: clean,
     deviceId,
