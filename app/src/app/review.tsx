@@ -122,7 +122,7 @@ export default function ReviewScreen(): React.JSX.Element {
         })();
       }
       clearSession();
-      router.replace({ pathname: '/(tabs)', params: { gained: String(gained) } });
+      router.replace({ pathname: '/', params: { gained: String(gained) } });
     } catch {
       setSaveError(true);
       setSaving(false);
