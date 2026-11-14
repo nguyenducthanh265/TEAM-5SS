@@ -1,7 +1,8 @@
 source,date,type,content,number
-survey-google-form,,survey,"Câu 1: đã gặp vấn đề trong tháng này",
-interview-1,,quote,"",
-first-user-channel,,channel,"Tên kênh + số thành viên + ai phụ trách",
-llm-eval,,accuracy,"Đúng trên dữ liệu thật (runs/<id>/results.md)",
-stats-endpoint,2026-11-14,usage,"devices_ai và ai_requests trong buổi dùng thử",
-demo-check,2026-11-14,device,"RESULT: PASS trên 2 máy, --repeat 3",
+rules/qd87.json,2026-01-08,regulation,"Quyết định 87/2025/QĐ-UBND của UBND TP Hà Nội bắt buộc hộ gia đình, cá nhân phân loại 3 nhóm chất thải rắn sinh hoạt (Điều 2, Điều 5)",3
+rules/qd87.json,2026-01-08,regulation,"Đơn vị thu gom có quyền từ chối thu gom, vận chuyển nếu hộ gia đình không phân loại hoặc dùng bao bì sai quy định (Điều 8, Điều 23 khoản 5)",2
+rules/qd87.json,2026-11-14,law-items,"Tổng hợp 10 món dễ phân loại sai từ QĐ 87 (5 nêu đích danh, 5 suy luận; review_status: AI soạn từ văn bản gốc, chờ 2 người soát chéo)",10
+evidence/test-report.md,2026-11-14,test-backend,"pytest backend đạt 143 passed, 4 skipped; toàn bộ test_waste_api.py, test_waste_classifier.py, test_groups.py đều pass",143
+evidence/test-report.md,2026-11-14,test-app,"npx tsc --noEmit sạch lỗi; npx jest --ci đạt 34/34 test (4/4 suites); npm run smoke RESULT: PASS",34
+evidence/test-report.md,2026-11-14,test-rules,"check_rules.py trên rules/qd87.json và --scan-src app/src đều RESULT: PASS; không dùng từ cấm hay tên nhóm viết tay",2
+DISCLOSURE.md,2026-11-14,timeline,"Tag git pre-hackathon tại commit f9eaa52 lúc 10:51 ngày 14/11/2026; mã app và backend hoàn thiện trong ngày thi",10:51

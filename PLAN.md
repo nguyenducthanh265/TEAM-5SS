@@ -46,22 +46,22 @@ Chi tiết từng gói: `profiles/codex-hanoi/ecohanoi/WORK-PACKAGES.md`. Luật
 
 ### Cổng 1 — hợp đồng (11:00–11:20)
 - [x] `PLAN.md`, `app/src/lib/contracts.ts`
-- [ ] Khung Expo: `powershell -File scripts/setup-app.ps1` (cần Node) → `npx tsc --noEmit` sạch
+- [x] Khung Expo: `powershell -File scripts/setup-app.ps1` (cần Node) → `npx tsc --noEmit` sạch
 
 ### Cổng 2 — luồng quét đầu–cuối (11:20–13:00)
-- [ ] WP-01 backend `/classify` theo file luật + test (A-backend)
-- [ ] WP-03 nguồn luật + 3 tab (B-shell)
-- [ ] WP-04 màn Quét, hàng chờ 3 request (C-scan)
-- [ ] WP-05 kho dữ liệu + Xem lại (D-data)
-- [ ] Kiểm: `pytest ml/tests/test_waste*.py`; `check_rules.py --scan-src app/src` PASS; `tsc` sạch
+- [x] WP-01 backend `/classify` theo file luật + test (A-backend)
+- [x] WP-03 nguồn luật + 3 tab (B-shell)
+- [x] WP-04 màn Quét, hàng chờ 3 request (C-scan)
+- [x] WP-05 kho dữ liệu + Xem lại (D-data)
+- [x] Kiểm: `pytest ml/tests/test_waste*.py`; `check_rules.py --scan-src app/src` PASS; `tsc` sạch
 - [ ] NGƯỜI: deploy Render, `smoke_test.py <URL>` → `RESULT: PASS source=ai`
 
 ### Cổng 3 — đủ bản demo (13:00–14:30)
-- [ ] WP-10 selftest deep link `ecohanoi://selftest` (C-scan)
-- [ ] WP-06 tab Cây (B-shell)
-- [ ] WP-07 tab Thống kê (D-data)
-- [ ] WP-08 nhóm + bảng xếp hạng (A-backend, D-data) — cắt đầu tiên nếu trễ
-- [ ] WP-11 rà soát code + bảo mật lần 1 (E-review), sửa lỗi mức Chặn
+- [x] WP-10 selftest deep link `ecohanoi://selftest` (C-scan)
+- [x] WP-06 tab Cây (B-shell)
+- [x] WP-07 tab Thống kê (D-data)
+- [x] WP-08 nhóm + bảng xếp hạng (A-backend, D-data) — cắt đầu tiên nếu trễ
+- [x] WP-11 rà soát code + bảo mật lần 1 (E-review), sửa lỗi mức Chặn
 - [ ] NGƯỜI: build APK #2 (`eas build -p android --profile preview`), cài 2 máy, `demo_check.py --repeat 3`
 - [ ] NGƯỜI: WP-02 đo độ chính xác trên 30–50 ảnh rác tự chụp
 
