@@ -74,6 +74,9 @@ Mục tiêu của tụi em: tối nay cầm hộp cơm này ra thùng rác, khô
 6. **Codex đã làm gì?**
    Theo DISCLOSURE.md, trước 10 giờ 51 ngày 14 tháng 11 chỉ có kit v11, tài liệu ý tưởng và file luật. Trong giờ thi, nhóm dùng Codex và Antigravity viết backend phân loại, API nhóm, luồng quét và bộ kiểm thử. Chi tiết từng gói của Codex và ảnh phiên làm việc đang được cập nhật vào DISCLOSURE.md trước giờ nộp.
 
+7. **Làm sao chống gian lận điểm?**
+   Toàn bộ điểm XP và chuỗi ngày do server tính (`ml/serve/rewards.py`), app không thể tự gửi hay sửa XP, ngày hoặc số món. Server giới hạn tối đa 15 món/ngày tính theo giờ Việt Nam (UTC+7) trên server nên đổi giờ điện thoại không có tác dụng, và mỗi ảnh chỉ được tính một lần trong ngày qua mã băm (`seen` hash). Việc đổi thưởng thật hiện chưa làm trong bản hackathon này — đó là bước tiếp theo và sẽ yêu cầu đối soát trực tiếp tại chỗ (ví dụ tại ký túc xá/ban quản lý) trước khi trao thưởng.
+
 ---
 
 ## Thiếu bằng chứng (tách riêng, KHÔNG đọc thành số khi chưa cập nhật)

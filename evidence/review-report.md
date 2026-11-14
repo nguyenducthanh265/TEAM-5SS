@@ -1,23 +1,12 @@
-# Review Report — Lần 1 (WP-11)
-
+# Rà soát bảo mật & logic (server-voice & rewards)
 ## Chặn
-- `app/eas.json:12` (Điều phối): Thay URL mẫu `https://TEN-BACKEND.onrender.com` bằng URL Render thật trước khi build APK #2.
-
+- Không có lỗi mức Chặn.
 ## Nên sửa
-- `ml/serve/groups.py:64` (AG-02): Chỉ chạy chế độ RAM cho demo hoặc nhờ Điều phối thêm `psycopg[binary]` vào `ml/requirements-llm.txt` nếu bật `DATABASE_URL`.
-- `app/src/components/stats/TeamCard.tsx:39` (AG-08): Phân biệt mã nhóm chưa có dữ liệu (404) với lỗi mạng trong `groupApi.ts` để hiển thị thông báo đúng hơn.
-- `rules/qd87.json:3` (Điều phối): Hai người đối chiếu PDF và cập nhật `review_status` trước khi chốt bản nộp.
-
+- `ml/serve/rewards.py:228-232`: `observe` vẫn thêm hash vào `seen` dù `observed >= MAX_ITEMS_PER_DAY`, gây phình JSONB/RAM nếu gửi nhiều ảnh lạ; thêm `if st["observed"] >= MAX_ITEMS_PER_DAY: return None` trước khi thêm `seen`.
+- `ml/serve/rewards.py:127`: `_run_pg` mở kết nối Postgres mới mỗi request, dễ chạm giới hạn kết nối và chậm khi tải cao; dùng `psycopg_pool.ConnectionPool` dùng chung.
+- `app/src/lib/voice.ts:91-98,131`: `playAi` gọi `fetch(uri)` kiểm tra rồi bỏ body và gọi `createAudioPlayer({ uri })` tải lại lần 2, tốn 2 lượt request/rate-limit và để stream treo; tải về file tạm bằng `expo-file-system` hoặc bỏ bước `fetch` thừa.
+- `app/src/lib/voice.ts:91-99,128`: `cancelCurrent` chưa gán khi `fetch` đang chạy nên `stopSpeaking()` không hủy được câu sắp phát nếu `enabled` vẫn `true`; lưu `ctrl.abort` vào `cancelCurrent` trước `fetch`.
 ## Bỏ qua được
-- `app/src/app/review.tsx:124` (AG-06): Gọi `clear()` của `scanQueue.ts` thay vì `clearSession()` để dọn luôn `waiting` và `sizes`.
-- `app/src/app/selftest.tsx:112` (AG-05): Bỏ `insets.top` hoặc tắt header ở `_layout.tsx:22` để tránh khoảng trống kép ở đỉnh màn hình.
-- `app/src/lib/aiClient.ts:40` (AG-04): Hạ giới hạn `cut` từ `160`/`120` về `120`/`80` cho khớp `contracts.ts:12-13`.
-
-## Lần 2
-### Chặn (chỉ còn việc thuộc NGƯỜI)
-- `app/eas.json:12` (NGƯỜI / Điều phối): Thay URL mẫu `https://TEN-BACKEND.onrender.com` bằng URL Render thật trước khi build APK.
-- `rules/qd87.json:3` (NGƯỜI): Hai người đối chiếu văn bản PDF gốc và cập nhật `review_status` trước khi chốt bản nộp.
-### Nên sửa
-- Không còn lỗi code/bảo mật; FIX-01..FIX-07 đã sửa đạt (`review.tsx` khóa `savingRef`, `requirements-llm.txt` + `render.yaml`, `groups.py` `MAX_GROUPS`, `app_llm.py` `Content-Length` 413, `aiClient.ts` cắt 120/80, `groupApi.ts` + `TeamCard.tsx` tách 404/lỗi mạng, `selftest.tsx` bỏ `insets.top`).
-### Bỏ qua được
-- `app/src/app/review.tsx:132` (AG-06): Đã xóa từng `done` entry qua `remove(entry.id)` và chặn lưu khi `hasPending`; không ảnh hưởng luồng chính.
+- `ml/serve/speak.py:101-120`: Hai request đồng thời cùng câu chưa cache đều gọi `_synthesize` trả phí 2 lần; chấp nhận được ở quy mô demo, sau có thể khóa theo `key`.
+- `app/src/lib/voice.ts:43-55`: `loadVoicePref` đọc AsyncStorage bất đồng bộ có thể ghi đè `setVoiceOn(true)` nếu người dùng bấm rất sớm; rủi ro thấp.
+- `app/src/lib/rewardsApi.ts:7-12,77`: Hàm `baseUrl()` lặp lại từ `voice.ts` và `deviceId` (UUID ngẫu nhiên, không PII) đi qua query string; có thể gom helper chung sau.

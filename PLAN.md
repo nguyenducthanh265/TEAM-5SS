@@ -98,3 +98,9 @@ WP-08 → WP-07 → chế độ Cả túi → hiệu ứng cây. Không cắt: W
 - [ ] URL Render thật, request vision thật và smoke `/classify` trên URL đó (người dùng xác nhận chưa có URL).
 - [ ] APK cuối trên hai điện thoại, `demo_check.py --repeat 3`, thử mất mạng/từ chối camera/mở lại app.
 - [ ] Hai người soát luật, ảnh thật để đo độ chính xác, bằng chứng người dùng và pitch/disclosure cuối.
+
+## Bổ sung server-side rewards, giọng đọc & Postgres
+- [x] Điểm & chuỗi ngày tính trên server (`ml/serve/rewards.py`, `app/src/lib/rewardsApi.ts`): chống client tự sửa điểm/ngày, trần 15 món/ngày theo giờ VN (UTC+7), chống đếm trùng ảnh (`seen` hash).
+- [x] Giọng đọc kết quả (`ml/serve/speak.py` dùng OpenAI `gpt-4o-mini-tts`, `app/src/lib/voice.ts`, `app/src/lib/voiceCore.ts`): phát qua `expo-audio`, tự chuyển sang giọng điện thoại `expo-speech` khi lỗi/mất mạng.
+- [x] Lưu trữ bền vững trên Postgres (`DATABASE_URL` trong `render.yaml`, `psycopg[binary]`) cho bảng `ecohanoi_rewards` và `ecohanoi_groups`; thêm `react-native-svg` cho cây chậu SVG.
+- [x] Rà soát code & bảo mật chỉ đọc phần server-voice & rewards (`evidence/review-report.md`).
