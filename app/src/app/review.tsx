@@ -1,16 +1,18 @@
 import { Stack, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupPickerSheet } from '@/components/review/GroupPickerSheet';
 import { ReviewItemCard } from '@/components/review/ReviewItemCard';
+import { runWithSaveLock } from '@/components/review/saveLock';
 import type { ScanEntry } from '@/lib/contracts';
 import { postGroupScore } from '@/lib/groupApi';
 import { XP_MISPLACED_BONUS, XP_PER_ITEM } from '@/lib/progress';
 import type { ReviewItem } from '@/lib/progress';
 import { UNKNOWN_GROUP } from '@/lib/rules';
-import { clearSession, getSessionEntries } from '@/lib/session';
+import { remove } from '@/lib/scanQueue';
+import { getSessionEntries } from '@/lib/session';
 import { getDeviceId, getGroupCode, saveSession } from '@/lib/store';
 import { theme } from '@/lib/theme';
 
@@ -36,9 +38,13 @@ function loadEntries(): ReviewEntry[] {
 
 export default function ReviewScreen(): React.JSX.Element {
   const router = useRouter();
+  const { width, fontScale } = useWindowDimensions();
+  const columns = width < 360 || fontScale > 1.25 ? 1 : 2;
+  const [hasPending] = useState(() => getSessionEntries().some((entry) => entry.status === 'pending'));
   const [entries, setEntries] = useState<ReviewEntry[]>(loadEntries);
   const [picked, setPicked] = useState<{ entryId: string; index: number } | null>(null);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef<boolean>(false);
   const [saveError, setSaveError] = useState(false);
 
   const rows = useMemo<Row[]>(() => {
@@ -94,45 +100,50 @@ export default function ReviewScreen(): React.JSX.Element {
   }, [picked, updateItem]);
 
   const goBackToScan = useCallback(() => {
+    if (saving) return;
     if (router.canGoBack()) {
       router.back();
     } else {
       router.replace('/(tabs)/scan');
     }
-  }, [router]);
+  }, [router, saving]);
 
   const onSave = useCallback(async () => {
-    if (saving || rows.length === 0) return;
+    if (saving || savingRef.current || hasPending || rows.length === 0) return;
     setSaving(true);
     setSaveError(false);
     try {
-      const { gained } = await saveSession(entries);
-      // Điểm nhóm: gửi nền, lỗi mạng bỏ qua, không chặn việc lưu trên máy.
-      if (gained > 0) {
-        const itemCount = rows.length;
-        void (async () => {
-          try {
-            const code = await getGroupCode();
-            if (!code) return;
-            const deviceId = await getDeviceId();
-            await postGroupScore(code, deviceId, gained, itemCount);
-          } catch {
-            // bỏ qua
-          }
-        })();
-      }
-      clearSession();
-      router.replace({ pathname: '/', params: { gained: String(gained) } });
+      await runWithSaveLock(savingRef, async () => {
+        const { gained } = await saveSession(entries);
+        // Điểm nhóm: gửi nền, lỗi mạng bỏ qua, không chặn việc lưu trên máy.
+        if (gained > 0) {
+          const itemCount = rows.length;
+          void (async () => {
+            try {
+              const code = await getGroupCode();
+              if (!code) return;
+              const deviceId = await getDeviceId();
+              await postGroupScore(code, deviceId, gained, itemCount);
+            } catch {
+              // bỏ qua
+            }
+          })();
+        }
+        for (const entry of entries) remove(entry.id);
+        router.replace({ pathname: '/', params: { gained: String(gained) } });
+      });
     } catch {
       setSaveError(true);
       setSaving(false);
     }
-  }, [entries, rows.length, router, saving]);
+  }, [entries, hasPending, rows.length, router, saving]);
 
   const header = (
     <View style={styles.header}>
       <Pressable
         onPress={goBackToScan}
+        disabled={saving}
+        accessibilityState={{ disabled: saving }}
         accessibilityRole="button"
         accessibilityLabel="Quay lại Quét"
         hitSlop={12}
@@ -173,16 +184,22 @@ export default function ReviewScreen(): React.JSX.Element {
       <Stack.Screen options={{ headerShown: false }} />
       {header}
       <FlatList
+        key={columns}
         data={rows}
         keyExtractor={(r) => r.key}
-        numColumns={2}
-        columnWrapperStyle={styles.column}
+        numColumns={columns}
+        columnWrapperStyle={columns === 2 ? styles.column : undefined}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <Text style={styles.sub}>
               {rows.length} món · chạm vào món để sửa nhóm nếu AI nhận sai
             </Text>
+            {hasPending ? (
+              <Text style={styles.error} accessibilityRole="alert">
+                Còn ảnh đang phân loại. Quay lại Quét, chờ xong rồi mở Xem lại để lưu đủ các món.
+              </Text>
+            ) : null}
             {unknownCount > 0 ? (
               <View style={styles.notice}>
                 <Text style={styles.noticeText}>
@@ -193,26 +210,28 @@ export default function ReviewScreen(): React.JSX.Element {
           </View>
         }
         renderItem={({ item: row }) => (
-          <View style={styles.cell}>
+          <View style={[styles.cell, columns === 1 && styles.fullCell]}>
             <ReviewItemCard
               uri={row.uri}
               item={row.item}
-              onPress={() => setPicked({ entryId: row.entryId, index: row.index })}
+              onPress={() => { if (!saving) setPicked({ entryId: row.entryId, index: row.index }); }}
             />
           </View>
         )}
       />
       <View style={styles.footer}>
         {saveError ? (
-          <Text style={styles.error}>Chưa lưu được. Bấm lại để thử lần nữa.</Text>
+          <Text style={styles.error} accessibilityRole="alert">Chưa lưu được. Bấm lại để thử lần nữa.</Text>
         ) : null}
         <Pressable
           onPress={onSave}
-          disabled={saving}
+          disabled={saving || hasPending}
+          accessibilityState={{ disabled: saving || hasPending, busy: saving }}
+          accessibilityLabel={saving ? 'Đang lưu phiên quét' : `Lưu và nuôi cây, dự kiến ${expectedXp} XP`}
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.primaryBtn,
-            (pressed || saving) && styles.pressed,
+            (pressed || saving || hasPending) && styles.pressed,
           ]}
         >
           {saving ? (
@@ -250,7 +269,7 @@ const styles = StyleSheet.create({
   },
   back: {
     minWidth: 64,
-    minHeight: 36,
+    minHeight: 48,
     justifyContent: 'center',
   },
   backText: {
@@ -278,6 +297,7 @@ const styles = StyleSheet.create({
     flex: 1,
     maxWidth: '50%',
   },
+  fullCell: { maxWidth: '100%' },
   sub: {
     color: theme.textDim,
     fontSize: 14,
@@ -319,6 +339,7 @@ const styles = StyleSheet.create({
     color: theme.primaryText,
     fontSize: 17,
     fontWeight: '700',
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.7,
