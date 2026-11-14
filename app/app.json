@@ -18,7 +18,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.fivess.ecohanoi"
+      "package": "com.fivess.ecohanoi",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +38,17 @@
         }
       ]
     ],
-    "scheme": "ecohanoi"
+    "scheme": "ecohanoi",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "65718ec0-9e6d-46d8-a110-0db580b98365"
+      }
+    },
+    "owner": "ndtrick"
   }
 }
