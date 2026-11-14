@@ -226,8 +226,12 @@ def run(text, timeout=20.0, model=None, client=None, max_output_tokens=1500):
         import openai
 
         client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=timeout, max_retries=0)  # timeout thật nằm ở đây
+    extra = {}
+    effort = os.environ.get("OPENAI_REASONING_EFFORT", "").strip()
+    if effort:  # chỉ truyền khi có đặt: model không hỗ trợ suy luận (gpt-4.1...) sẽ báo lỗi nếu nhận tham số này
+        extra["reasoning"] = {"effort": effort}
     r = client.responses.create(model=model, instructions=PROMPTS[mode], input=[{"role": "user", "content": content}],
-                                max_output_tokens=max_output_tokens, text={"format": {"type": "json_object"}})
+                                max_output_tokens=max_output_tokens, text={"format": {"type": "json_object"}}, **extra)
     out, _status = extract_text(r)
     items = postprocess(parse_model_json(out), mode, GROUP_IDS)
     u = getattr(r, "usage", None)
