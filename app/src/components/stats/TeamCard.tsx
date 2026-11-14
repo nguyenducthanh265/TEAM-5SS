@@ -158,7 +158,7 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
               <Text style={styles.link}>Đổi mã</Text>
             </Pressable>
           </View>
-          {remote === 'loading' ? <ActivityIndicator color={theme.primary} /> : null}
+          {remote === 'loading' ? <ActivityIndicator color={theme.forest} /> : null}
           {remote === 'not_found' ? (
             <Text style={styles.text}>
               Mã nhóm chưa có điểm. Quét và lưu 1 phiên để tạo bảng điểm.
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   link: {
-    color: theme.primary,
+    color: theme.forest,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   mine: {
-    color: theme.primary,
+    color: theme.forest,
     fontWeight: '700',
   },
 });

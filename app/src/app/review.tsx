@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupPickerSheet } from '@/components/review/GroupPickerSheet';
@@ -15,6 +15,7 @@ import { remove } from '@/lib/scanQueue';
 import { getSessionEntries } from '@/lib/session';
 import { getDeviceId, getGroupCode, saveSession } from '@/lib/store';
 import { theme } from '@/lib/theme';
+import { canSaveReview, correctReviewItem } from '@/lib/presentation';
 
 // Bản sao cục bộ của phiên quét: items mang thêm cờ removed/corrected của màn này.
 type ReviewEntry = Omit<ScanEntry, 'items'> & { items: ReviewItem[] };
@@ -38,8 +39,6 @@ function loadEntries(): ReviewEntry[] {
 
 export default function ReviewScreen(): React.JSX.Element {
   const router = useRouter();
-  const { width, fontScale } = useWindowDimensions();
-  const columns = width < 360 || fontScale > 1.25 ? 1 : 2;
   const [hasPending] = useState(() => getSessionEntries().some((entry) => entry.status === 'pending'));
   const [entries, setEntries] = useState<ReviewEntry[]>(loadEntries);
   const [picked, setPicked] = useState<{ entryId: string; index: number } | null>(null);
@@ -59,6 +58,7 @@ export default function ReviewScreen(): React.JSX.Element {
   }, [entries]);
 
   const unknownCount = rows.filter((r) => r.item.groupId === UNKNOWN_GROUP.id).length;
+  const needsConfirmation = !canSaveReview(rows.map(row => row.item));
   const expectedXp = rows.reduce(
     (sum, r) => sum + XP_PER_ITEM + (r.item.misplaced === true ? XP_MISPLACED_BONUS : 0),
     0,
@@ -84,7 +84,7 @@ export default function ReviewScreen(): React.JSX.Element {
     (groupId: string) => {
       if (picked) {
         updateItem(picked.entryId, picked.index, (it) =>
-          it.groupId === groupId ? it : { ...it, groupId, corrected: true },
+          correctReviewItem(it, groupId),
         );
       }
       setPicked(null);
@@ -109,7 +109,7 @@ export default function ReviewScreen(): React.JSX.Element {
   }, [router, saving]);
 
   const onSave = useCallback(async () => {
-    if (saving || savingRef.current || hasPending || rows.length === 0) return;
+    if (saving || savingRef.current || hasPending || !canSaveReview(rows.map(row => row.item))) return;
     setSaving(true);
     setSaveError(false);
     try {
@@ -130,7 +130,7 @@ export default function ReviewScreen(): React.JSX.Element {
           })();
         }
         for (const entry of entries) remove(entry.id);
-        router.replace({ pathname: '/', params: { gained: String(gained) } });
+        router.replace({ pathname: '/(tabs)/garden', params: { gained: String(gained) } });
       });
     } catch {
       setSaveError(true);
@@ -151,7 +151,7 @@ export default function ReviewScreen(): React.JSX.Element {
       >
         <Text style={styles.backText}>‹ Quét</Text>
       </Pressable>
-      <Text style={styles.title}>Xem lại</Text>
+      <Text style={styles.title}>Kết quả phân loại</Text>
       <View style={styles.back} />
     </View>
   );
@@ -184,16 +184,14 @@ export default function ReviewScreen(): React.JSX.Element {
       <Stack.Screen options={{ headerShown: false }} />
       {header}
       <FlatList
-        key={columns}
         data={rows}
         keyExtractor={(r) => r.key}
-        numColumns={columns}
-        columnWrapperStyle={columns === 2 ? styles.column : undefined}
+        numColumns={1}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.listHeader}>
             <Text style={styles.sub}>
-              {rows.length} món · chạm vào món để sửa nhóm nếu AI nhận sai
+              {rows.length} món · Bạn là người xác nhận cuối cùng. Chạm “Sửa” nếu cần đổi nhóm.
             </Text>
             {hasPending ? (
               <Text style={styles.error} accessibilityRole="alert">
@@ -207,10 +205,11 @@ export default function ReviewScreen(): React.JSX.Element {
                 </Text>
               </View>
             ) : null}
+            {needsConfirmation && unknownCount === 0 ? <Text style={styles.error}>Món nguy hại cần xác nhận nhóm Còn lại và chuyển giao riêng. Chạm “Sửa” để xác nhận.</Text> : null}
           </View>
         }
         renderItem={({ item: row }) => (
-          <View style={[styles.cell, columns === 1 && styles.fullCell]}>
+          <View style={[styles.cell, styles.fullCell]}>
             <ReviewItemCard
               uri={row.uri}
               item={row.item}
@@ -225,13 +224,13 @@ export default function ReviewScreen(): React.JSX.Element {
         ) : null}
         <Pressable
           onPress={onSave}
-          disabled={saving || hasPending}
-          accessibilityState={{ disabled: saving || hasPending, busy: saving }}
+          disabled={saving || hasPending || needsConfirmation}
+          accessibilityState={{ disabled: saving || hasPending || needsConfirmation, busy: saving }}
           accessibilityLabel={saving ? 'Đang lưu phiên quét' : `Lưu và nuôi cây, dự kiến ${expectedXp} XP`}
           accessibilityRole="button"
           style={({ pressed }) => [
             styles.primaryBtn,
-            (pressed || saving || hasPending) && styles.pressed,
+            (pressed || saving || hasPending || needsConfirmation) && styles.pressed,
           ]}
         >
           {saving ? (
@@ -247,6 +246,7 @@ export default function ReviewScreen(): React.JSX.Element {
         visible={pickedRow !== undefined}
         itemName={pickedRow ? pickedRow.item.name : ''}
         currentGroupId={pickedRow ? pickedRow.item.groupId : ''}
+        hazardous={pickedRow?.item.hazardous}
         onPick={onPick}
         onRemove={onRemove}
         onClose={() => setPicked(null)}
@@ -273,11 +273,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backText: {
-    color: theme.primary,
+    color: theme.forest,
     fontSize: 16,
     fontWeight: '600',
   },
   title: {
+    flex: 1,
+    flexShrink: 1,
+    textAlign: 'center',
     color: theme.text,
     fontSize: 20,
     fontWeight: '700',

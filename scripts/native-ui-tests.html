@@ -1,0 +1,43 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>Expo UI checks</title><pre id="results">RUNNING</pre><iframe title="App under test" width="375" height="844"></iframe><script>
+const frame=document.querySelector('iframe'),out=document.querySelector('#results'),logs=[];let failures=0;
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function check(name,fn){try{fn();logs.push('PASS '+name)}catch(error){failures++;logs.push('FAIL '+name+': '+error.message)}}
+function assert(value,message='Assertion failed'){if(!value)throw Error(message)}
+async function waitFor(fn){for(let i=0;i<100;i++){if(fn())return;await delay(50)}throw Error('UI timed out')}
+frame.onload=async()=>{
+ const w=frame.contentWindow,d=frame.contentDocument;
+ const text=()=>d.body.textContent;
+ const control=label=>[...d.querySelectorAll('[role="button"],button')].find(el=>el.getAttribute('aria-label')===label||el.textContent.trim()===label);
+ const press=label=>{const el=control(label);assert(el,'Missing control: '+label);el.click()};
+ try{
+  await waitFor(()=>text().includes('Hôm nay, mình')&&text().includes('CÂY CỦA BẠN'));
+  check('Home renders real native components with zero initial progress',()=>{assert(text().includes('0 / 50 XP'));assert(!text().includes('120 / 150'))});
+  check('floating scan action is visible at mobile width',()=>{const box=control('Quét rác').getBoundingClientRect();assert(box.top>=0&&box.bottom<=844)});
+  press('Cẩm nang');await waitFor(()=>d.querySelector('input[aria-label="Tìm tên món rác"]'));
+  check('guide is connected to rule examples',()=>assert(text().includes('Pin AA đã hết')));
+  const input=d.querySelector('input[aria-label="Tìm tên món rác"]');
+  Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype,'value').set.call(input,'vo chuoi');input.dispatchEvent(new w.Event('input',{bubbles:true}));
+  await waitFor(()=>text().includes('Vỏ chuối')&&!text().includes('Pin AA đã hết'));
+  check('Vietnamese guide search works without accents',()=>assert(text().includes('Vỏ chuối')));
+  press('Tái chế');await waitFor(()=>text().includes('Những món thuộc nhóm này'));
+  check('group opens source-based guide sheet',()=>assert(text().includes('Phân loại vào túi riêng')));
+  press('Đóng hướng dẫn');await delay(100);
+  press('Cây xanh');await waitFor(()=>text().includes('Hành trình lớn lên'));
+  press('Xem trước Cây non, 50 XP');await waitFor(()=>text().includes('XEM TRƯỚC'));
+  check('stage preview does not change actual XP',()=>assert(text().includes('0 XP tích lũy')));
+  press('Thống kê');await waitFor(()=>text().includes('Chưa có lượt quét nào'));
+  check('real history starts empty',()=>assert(text().includes('Chưa có lượt quét nào')));
+  const before=w.localStorage.getItem('ecohanoi.progress.v1');
+  d.querySelector('[aria-label="Bật dữ liệu mẫu"]').click();await waitFor(()=>text().includes('Đang xem dữ liệu mẫu'));
+  check('sample statistics stay isolated from real progress',()=>assert(w.localStorage.getItem('ecohanoi.progress.v1')===before));
+  d.querySelector('[aria-label="Bật dữ liệu mẫu"]').click();await waitFor(()=>!text().includes('Đang xem dữ liệu mẫu'));
+  press('Quét rác');await waitFor(()=>text().includes('Cần quyền camera')||text().includes('PHÂN LOẠI RÁC'));
+  check('scan shows permission or real camera UI',()=>assert(text().includes('camera')||text().includes('PHÂN LOẠI RÁC')));
+  if(control('Về trang chủ'))press('Về trang chủ');else press('Về trang chủ');
+  await waitFor(()=>text().includes('CÂY CỦA BẠN'));
+  check('denied camera has a working exit to Home',()=>assert(text().includes('Hôm nay, mình')));
+  check('mobile page does not overflow horizontally',()=>assert(d.documentElement.scrollWidth<=375));
+ }catch(error){failures++;logs.push('FAIL browser flow: '+error.message)}
+ out.textContent=logs.join('\n')+'\nRESULT: '+(failures?'FAIL '+failures:'PASS');document.title=failures?'FAIL':'PASS';
+};frame.src='/';
+</script></html>

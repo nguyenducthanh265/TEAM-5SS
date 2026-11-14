@@ -1,0 +1,12 @@
+PASS Home renders real native components with zero initial progress
+PASS floating scan action is visible at mobile width
+PASS guide is connected to rule examples
+PASS Vietnamese guide search works without accents
+PASS group opens source-based guide sheet
+PASS stage preview does not change actual XP
+PASS real history starts empty
+PASS sample statistics stay isolated from real progress
+PASS scan shows permission or real camera UI
+PASS denied camera has a working exit to Home
+PASS mobile page does not overflow horizontally
+RESULT: PASS

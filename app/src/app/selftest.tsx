@@ -115,7 +115,7 @@ export default function SelftestScreen() {
 
       {running ? (
         <View style={styles.box}>
-          <ActivityIndicator size="large" color={theme.primary} />
+          <ActivityIndicator size="large" color={theme.forest} />
           <Text style={styles.wait}>Đang gọi AI…</Text>
         </View>
       ) : null}
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   },
   wait: { marginTop: 10, fontSize: 15, color: theme.textDim, fontWeight: '600' },
   pass: { borderColor: theme.primary, borderWidth: 2 },
-  passText: { fontSize: 18, fontWeight: '800', color: theme.primary },
+  passText: { fontSize: 18, fontWeight: '800', color: theme.forest },
   fail: { borderColor: theme.danger, borderWidth: 2, alignItems: 'flex-start' },
   failText: { fontSize: 18, fontWeight: '800', color: theme.danger },
   meta: { marginTop: 4, fontSize: 13, color: theme.textDim },

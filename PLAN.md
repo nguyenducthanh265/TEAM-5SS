@@ -1,5 +1,12 @@
 # EcoHanoi — PLAN (ngày thi 14/11/2026, code 11:00–16:00)
 
+## Ghép UI từ bản thiết kế EcoHanoi (phiên hiện tại)
+- [x] Clone baseline `183b319`, đối chiếu dịch vụ/kiểu dữ liệu
+- [x] Home + Cẩm nang + Quét giữa + Cây xanh + Thống kê theo palette đã chốt
+- [x] Sửa nhóm/Kết quả + cây chậu SVG, nối kho và hàng chờ hiện có
+- [x] Jest/typecheck/rules/export, review, ảnh kiểm tra và hướng dẫn chạy
+Chi tiết: `docs/UI-INTEGRATION.md`, `docs/UI-PLAN.md`.
+
 Một luồng demo: mở app → tab Cây → QUÉT RÁC → chụp món → AI trả 1 trong 3 nhóm QĐ 87 (tên, lý do, mẹo) → Xem lại, sửa nhãn → Lưu & Nuôi cây → cây lớn. Đóng hẳn app, mở lại vẫn còn dữ liệu và AI vẫn chạy.
 
 Thứ tự ưu tiên = thứ tự điểm: quét AI trên APK (40) → bằng chứng vấn đề (35) → người dùng + mở rộng (25).

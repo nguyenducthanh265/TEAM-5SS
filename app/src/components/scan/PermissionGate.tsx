@@ -1,5 +1,6 @@
 // Màn giải thích khi chưa có quyền camera: nói rõ vì sao cần, cho xin lại hoặc mở Cài đặt.
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,10 +12,11 @@ type Props = {
 };
 
 export function PermissionGate({ canAskAgain, onAsk }: Props) {
+  const router=useRouter();
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
     <ScrollView contentContainerStyle={styles.wrap}>
-      <Ionicons name="camera-outline" size={56} color={theme.primary} />
+      <Ionicons name="scan-outline" size={72} color={theme.forest} />
       <Text style={styles.title}>Cần quyền camera để quét rác</Text>
       <Text style={styles.body}>
         Ảnh được gửi lên máy chủ để AI gợi ý nhóm rác. Bạn có thể xem lại và sửa nhãn trước khi lưu.
@@ -33,6 +35,7 @@ export function PermissionGate({ canAskAgain, onAsk }: Props) {
       >
         <Text style={canAskAgain ? styles.ghostText : styles.primaryText}>Mở Cài đặt</Text>
       </Pressable>
+      <Pressable style={styles.ghostBtn} onPress={()=>router.navigate('/(tabs)')} accessibilityRole="button"><Text style={styles.ghostText}>Về trang chủ</Text></Pressable>
     </ScrollView>
     </SafeAreaView>
   );

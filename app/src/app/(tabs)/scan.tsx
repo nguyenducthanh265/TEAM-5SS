@@ -140,7 +140,7 @@ export default function ScanScreen() {
   if (!permission) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <ActivityIndicator size="large" color={theme.forest} />
       </View>
     );
   }
@@ -177,6 +177,7 @@ export default function ScanScreen() {
       ) : null}
 
       <View style={[styles.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
+        <View style={styles.scanHeader}><Pressable accessibilityRole="button" accessibilityLabel="Về trang chủ" style={styles.closeScan} onPress={()=>router.navigate('/(tabs)')}><Ionicons name="arrow-back" size={23} color={theme.text}/></Pressable><Text style={styles.scanTitle}>PHÂN LOẠI RÁC</Text><View style={{width:48}}/></View>
         <View style={styles.switch} accessibilityRole="tablist">
           <Pressable
             style={[styles.switchBtn, mode === 'item' ? styles.switchOn : null]}
@@ -184,7 +185,7 @@ export default function ScanScreen() {
             accessibilityRole="tab"
             accessibilityState={{ selected: mode === 'item' }}
           >
-            <Text style={[styles.switchText, mode === 'item' ? styles.switchTextOn : null]}>1 món</Text>
+            <Text style={[styles.switchText, mode === 'item' ? styles.switchTextOn : null]}>Một món</Text>
           </Pressable>
           <Pressable
             style={[styles.switchBtn, mode === 'bag' ? styles.switchOn : null]}
@@ -211,11 +212,12 @@ export default function ScanScreen() {
         ) : null}
         {cameraError ? (
           <Text style={styles.cameraError} accessibilityRole="alert">
-            Chưa mở được camera. Chuyển sang tab Cây rồi quay lại để thử lại.
+            Chưa mở được camera. Về Trang chủ rồi quay lại để thử lại.
           </Text>
         ) : null}
       </View>
 
+      <View style={styles.frameLayer} pointerEvents="none"><View style={styles.viewfinder}><View style={[styles.corner,styles.topLeft]}/><View style={[styles.corner,styles.topRight]}/><View style={[styles.corner,styles.bottomLeft]}/><View style={[styles.corner,styles.bottomRight]}/></View><Text style={styles.frameHint}>Đặt vật thể vào giữa khung hình</Text></View>
       <View style={styles.flashLayer} pointerEvents="none">
         {flash ? <FlyLabel key={flash.key} label={flash.label} xp={flash.xp} color={flash.color} /> : null}
       </View>
@@ -226,7 +228,7 @@ export default function ScanScreen() {
         ) : null}
         {!openEntry ? <ScanTray entries={entries} onOpen={setOpenId} onRetry={retry} onRemove={remove} /> : null}
 
-        <View style={styles.bar}>
+        <View style={[styles.bar,{paddingBottom:Math.max(insets.bottom,14)}]}>
           <View style={styles.side}>
             {pendingCount > 0 ? <Text style={styles.sideText} accessibilityLiveRegion="polite">Đang phân loại {pendingCount} ảnh</Text> : null}
           </View>
@@ -240,7 +242,7 @@ export default function ScanScreen() {
             accessibilityRole="button"
             accessibilityLabel={cameraReady ? 'Chụp ảnh để phân loại rác' : 'Đang mở camera'}
           >
-            <View style={styles.shutterInner} />
+            <View style={styles.shutterInner}><Ionicons name="camera-outline" size={30} color={theme.primary}/></View>
           </Pressable>
           <View style={styles.side}>
             {reviewItems > 0 ? (
@@ -265,6 +267,8 @@ export default function ScanScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000000' },
+  scanHeader:{width:'100%',flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:16},closeScan:{height:48,width:48,borderRadius:24,backgroundColor:theme.bg,alignItems:'center',justifyContent:'center'},scanTitle:{fontSize:11,letterSpacing:1.4,fontWeight:'700',color:'#FFFFFF'},
+  frameLayer:{position:'absolute',top:0,left:0,right:0,bottom:0,alignItems:'center',justifyContent:'center',paddingBottom:120},viewfinder:{width:'78%',height:'37%',position:'relative'},corner:{position:'absolute',height:36,width:36,borderColor:theme.primary},topLeft:{top:0,left:0,borderTopWidth:3,borderLeftWidth:3,borderTopLeftRadius:17},topRight:{top:0,right:0,borderTopWidth:3,borderRightWidth:3,borderTopRightRadius:17},bottomLeft:{bottom:0,left:0,borderBottomWidth:3,borderLeftWidth:3,borderBottomLeftRadius:17},bottomRight:{bottom:0,right:0,borderBottomWidth:3,borderRightWidth:3,borderBottomRightRadius:17},frameHint:{fontSize:12,color:'#FFFFFF',backgroundColor:'rgba(23,61,43,.7)',paddingHorizontal:14,paddingVertical:7,borderRadius:20,marginTop:18},
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg },
   top: { position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center', paddingHorizontal: 12 },
   switch: {
@@ -274,7 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   switchBtn: { minWidth: 96, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999, alignItems: 'center' },
-  switchOn: { backgroundColor: '#FFFFFF' },
+  switchOn: { backgroundColor: theme.primary },
   switchText: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
   switchTextOn: { color: theme.text },
   modeHint: {
@@ -325,11 +329,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 10,
     paddingBottom: 14,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: theme.bg,
   },
   side: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   sideText: {
-    color: '#FFFFFF',
+    color: theme.text,
     fontSize: 13,
     fontWeight: '700',
     textShadowColor: 'rgba(0,0,0,0.7)',
@@ -347,7 +351,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
   },
   shutterPressed: { transform: [{ scale: 0.92 }], opacity: 0.85 },
-  shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#FFFFFF' },
+  shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: theme.forest,alignItems:'center',justifyContent:'center' },
   reviewBtn: {
     minHeight: 48,
     maxWidth: '100%',

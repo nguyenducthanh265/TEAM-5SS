@@ -38,7 +38,7 @@ function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
         <Image source={{ uri: entry.uri }} style={styles.thumb} />
         <View style={styles.body}>
           <View style={styles.row}>
-            <ActivityIndicator size="small" color={theme.primary} />
+            <ActivityIndicator size="small" color={theme.forest} />
             <Text style={styles.pendingText}>đang soi…</Text>
           </View>
         </View>

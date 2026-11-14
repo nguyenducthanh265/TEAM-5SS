@@ -5,9 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupBars } from '@/components/stats/GroupBars';
 import { TeamCard } from '@/components/stats/TeamCard';
+import { GroupIcon } from '@/components/ui/Elements';
 import type { SavedItem } from '@/lib/contracts';
 import { dayKey } from '@/lib/progress';
-import { getGroups } from '@/lib/rules';
+import { getGroups, groupShort } from '@/lib/rules';
 import { getHistory, getSampleMode, setSampleMode } from '@/lib/store';
 import { theme } from '@/lib/theme';
 
@@ -48,6 +49,7 @@ export default function StatsScreen(): React.JSX.Element {
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [sampleError, setSampleError] = useState(false);
+  const [days, setDays] = useState(7);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -61,7 +63,7 @@ export default function StatsScreen(): React.JSX.Element {
       setRefreshKey((k) => k + 1);
       void (async () => {
         try {
-          const [items, sampleOn] = await Promise.all([getHistory(HISTORY_DAYS), getSampleMode()]);
+          const [items, sampleOn] = await Promise.all([getHistory(days), getSampleMode()]);
           if (!alive) return;
           setHistory(items);
           setSample(sampleOn);
@@ -75,7 +77,7 @@ export default function StatsScreen(): React.JSX.Element {
       return () => {
         alive = false;
       };
-    }, [reloadKey]),
+    }, [reloadKey, days]),
   );
 
   const onToggleSample = useCallback((on: boolean) => {
@@ -93,15 +95,16 @@ export default function StatsScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Thống kê</Text>
+          <Text style={styles.title}>Nhỏ mỗi ngày.{ '\n' }Nhiều điều thay đổi.</Text>
           {sample ? (
             <View style={styles.sampleTag}>
               <Text style={styles.sampleTagText}>Dữ liệu mẫu</Text>
             </View>
           ) : null}
         </View>
-        <Text style={styles.sub}>{HISTORY_DAYS} ngày gần nhất</Text>
-        {!loaded ? <ActivityIndicator color={theme.primary} accessibilityLabel="Đang tải thống kê" /> : null}
+        <Text style={styles.sub}>Mỗi lần đặt đúng chỗ đều đáng được ghi nhận.</Text>
+        <View style={styles.rangeRow}>{[{value:7,label:'7 ngày gần đây'},{value:0,label:'Tất cả'}].map(option=><Pressable key={option.value} accessibilityRole="button" accessibilityState={{selected:days===option.value}} onPress={()=>setDays(option.value)} style={[styles.rangeButton,days===option.value&&styles.rangeSelected]}><Text style={styles.rangeText}>{option.label}</Text></Pressable>)}</View>
+        {!loaded ? <ActivityIndicator color={theme.forest} accessibilityLabel="Đang tải thống kê" /> : null}
         {loadError ? (
           <View style={styles.card}>
             <Text style={styles.error} accessibilityRole="alert">Chưa đọc được lịch sử đã lưu.</Text>
@@ -157,6 +160,7 @@ export default function StatsScreen(): React.JSX.Element {
         ) : null}
 
         <TeamCard refreshKey={refreshKey} />
+        {loaded&&!loadError&&items.length>0?<View style={{gap:12}}><Text style={styles.cardTitle}>Nhật ký phân loại</Text>{[...items].reverse().slice(0,30).map((item,index)=><View style={styles.historyRow} key={`${item.savedAt}-${index}`}><GroupIcon id={item.groupId}/><View style={{flex:1}}><Text style={styles.historyName}>{item.name}</Text><Text style={styles.text}>{groupShort(item.groupId)}{sample?' · Mẫu':` · ${item.day}`}{item.corrected?' · Đã sửa':''}</Text></View></View>)}</View>:null}
 
         <View style={[styles.card, styles.switchRow]}>
           <View style={styles.switchText}>
@@ -167,7 +171,7 @@ export default function StatsScreen(): React.JSX.Element {
           <Switch
             value={sample}
             onValueChange={onToggleSample}
-            trackColor={{ true: theme.primary, false: theme.border }}
+            trackColor={{ true: theme.forest, false: theme.border }}
             accessibilityLabel="Bật dữ liệu mẫu"
           />
         </View>
@@ -194,7 +198,9 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.text,
-    fontSize: 26,
+    fontSize: 31,
+    lineHeight: 39,
+    letterSpacing: -1,
     fontWeight: '700',
   },
   sub: {
@@ -202,6 +208,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: -8,
   },
+  rangeRow:{flexDirection:'row',backgroundColor:theme.soft,padding:4,borderRadius:15,gap:4},rangeButton:{flex:1,minHeight:48,borderRadius:12,alignItems:'center',justifyContent:'center',padding:8},rangeSelected:{backgroundColor:theme.card},rangeText:{fontSize:13,fontWeight:'600',color:theme.text},historyRow:{flexDirection:'row',gap:12,paddingVertical:13,borderBottomWidth:1,borderBottomColor:theme.border,alignItems:'center'},historyName:{fontSize:14,lineHeight:22,fontWeight:'600',color:theme.text},
   sampleTag: {
     backgroundColor: theme.warn,
     borderRadius: 8,
