@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { ScanEntry } from '../contracts';
+import { XP_PER_ITEM } from '../progress';
 import {
   getDeviceId,
   getGroupCode,
@@ -44,9 +45,9 @@ describe('store', () => {
     jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('storage unavailable'));
     await expect(saveSession([entry('new', ['Chai'])])).rejects.toThrow('storage unavailable');
     expect(await AsyncStorage.getItem('ecohanoi.history.v1')).toBe(before);
-    expect((await getProgress()).xp).toBe(10);
+    expect((await getProgress()).xp).toBe(XP_PER_ITEM);
     await saveSession([entry('retry', ['Chai'])]);
-    expect((await getProgress()).xp).toBe(20);
+    expect((await getProgress()).xp).toBe(2 * XP_PER_ITEM);
   });
 
   it('read failure is surfaced to the screen instead of showing an empty account', async () => {
@@ -64,12 +65,12 @@ describe('store', () => {
 
   it('saveSession cộng XP và ghi lịch sử, đọc lại vẫn còn', async () => {
     const { gained, progress } = await saveSession([entry('a', ['Lon', 'Chai'])]);
-    expect(gained).toBe(20);
-    expect(progress.xp).toBe(20);
+    expect(gained).toBe(2 * XP_PER_ITEM);
+    expect(progress.xp).toBe(2 * XP_PER_ITEM);
     expect(progress.streakDays).toBe(1);
 
     const again = await getProgress();
-    expect(again.xp).toBe(20);
+    expect(again.xp).toBe(2 * XP_PER_ITEM);
     expect(again.totalItems).toBe(2);
     const history = await getHistory(30);
     expect(history.map((it) => it.name)).toEqual(['Lon', 'Chai']);
@@ -80,12 +81,12 @@ describe('store', () => {
       saveSession([entry('a', ['Lon'])]),
       saveSession([entry('b', ['Chai', 'Hộp giấy'])]),
     ]);
-    expect(first.gained).toBe(10);
-    expect(second.gained).toBe(20);
-    expect(second.progress.xp).toBe(30);
+    expect(first.gained).toBe(XP_PER_ITEM);
+    expect(second.gained).toBe(2 * XP_PER_ITEM);
+    expect(second.progress.xp).toBe(3 * XP_PER_ITEM);
 
     const progress = await getProgress();
-    expect(progress.xp).toBe(30);
+    expect(progress.xp).toBe(3 * XP_PER_ITEM);
     expect(progress.totalItems).toBe(3);
     const history = await getHistory(30);
     expect(history.map((it) => it.name)).toEqual(['Lon', 'Chai', 'Hộp giấy']);
@@ -106,7 +107,7 @@ describe('store', () => {
     expect((await getProgress()).xp).toBe(0);
     expect(await getHistory(30)).toEqual([]);
     const { progress } = await saveSession([entry('a', ['Lon'])]);
-    expect(progress.xp).toBe(10);
+    expect(progress.xp).toBe(XP_PER_ITEM);
     expect(await getHistory(30)).toHaveLength(1);
   });
 

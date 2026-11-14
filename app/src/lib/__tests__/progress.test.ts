@@ -51,11 +51,11 @@ describe('dayKey', () => {
 describe('applySession', () => {
   const now = new Date(2026, 10, 14, 12, 0);
 
-  it('cộng 10 XP mỗi món, bắt đầu từ 0', () => {
+  it('cộng XP_PER_ITEM mỗi món (phép tính cục bộ), bắt đầu từ 0', () => {
     const items = entriesToSavedItems([entry('a', [item('Chai nhựa'), item('Lon')])], now);
     const { gained, progress } = applySession(EMPTY_PROGRESS, items, dayKey(now));
     expect(gained).toBe(2 * XP_PER_ITEM);
-    expect(progress.xp).toBe(20);
+    expect(progress.xp).toBe(2 * XP_PER_ITEM);
     expect(progress.totalItems).toBe(2);
     expect(progress.correctedItems).toBe(0);
     expect(progress.streakDays).toBe(1);
@@ -94,7 +94,7 @@ describe('applySession', () => {
     expect(first.progress.streakDays).toBe(1);
     expect(second.progress.streakDays).toBe(2);
     expect(second.progress.lastScanDay).toBe('2026-11-15');
-    expect(second.progress.xp).toBe(20);
+    expect(second.progress.xp).toBe(2 * XP_PER_ITEM);
   });
 
   it('lưu hai lần cùng ngày thì chuỗi giữ nguyên', () => {
@@ -102,7 +102,7 @@ describe('applySession', () => {
     const items = entriesToSavedItems([entry('a', [item('Lon')])], now);
     const { progress } = applySession(start, items, '2026-11-14');
     expect(progress.streakDays).toBe(3);
-    expect(progress.xp).toBe(60);
+    expect(progress.xp).toBe(50 + XP_PER_ITEM);
   });
 
   it('cách 2 ngày thì chuỗi về 1', () => {

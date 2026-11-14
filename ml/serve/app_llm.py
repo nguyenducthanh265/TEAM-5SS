@@ -264,6 +264,8 @@ def _classify(image, mode, request: Request):
             items = _camel_items(n["output"])
         except ValueError:  # hệ thống không trả JSON đúng dạng (ví dụ SYSTEM không phải bộ phân loại)
             return _classify_fallback(t, "bad_output")
+        # Điểm do server tính: ghi nhận số món hợp lệ (đã nhận ra nhóm) mà server tự thấy; app chỉ được "claim" trong phạm vi này.
+        _rewards.observe(request.headers.get("x-device-id"), sum(1 for it in items if it.get("groupId") != "unknown"), image)
         return {"items": items, "source": "ai", "latencyMs": round((time.time() - t) * 1000)}
     except FTimeout:
         fut.cancel()
@@ -275,3 +277,9 @@ def _classify(image, mode, request: Request):
 from serve.groups import router as _groups_router  # noqa: E402
 
 app.include_router(_groups_router)
+
+from serve import rewards as _rewards  # noqa: E402
+from serve.speak import router as _speak_router  # noqa: E402
+
+app.include_router(_speak_router)
+app.include_router(_rewards.router)

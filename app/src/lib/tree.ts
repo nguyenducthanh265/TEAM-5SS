@@ -12,9 +12,9 @@ export interface TreeStage {
 
 export const TREE_STAGES: readonly TreeStage[] = [
   { index: 0, id: 'sprout', name: 'Mầm non', minXp: 0 },
-  { index: 1, id: 'sapling', name: 'Cây non', minXp: 50 },
-  { index: 2, id: 'canopy', name: 'Tán xanh', minXp: 150 },
-  { index: 3, id: 'giant', name: 'Đại thụ', minXp: 400 },
+  { index: 1, id: 'sapling', name: 'Cây non', minXp: 60 }, // ~2 ngày đủ 5 món
+  { index: 2, id: 'canopy', name: 'Tán xanh', minXp: 300 }, // ~1 tuần chuỗi liên tục
+  { index: 3, id: 'giant', name: 'Đại thụ', minXp: 900 }, // ~3 tuần chuỗi liên tục
 ] as const;
 
 function sanitizeXp(xp: number): number {

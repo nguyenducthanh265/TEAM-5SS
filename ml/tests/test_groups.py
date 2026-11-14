@@ -17,7 +17,10 @@ def c(monkeypatch):
     monkeypatch.setenv("SYSTEM", "examples.toy_system:run")
     sys.modules.pop("serve.app_llm", None)
     m = importlib.import_module("serve.app_llm")
-    importlib.import_module("serve.groups").reset()
+    groups = importlib.import_module("serve.groups")
+    groups.reset()
+    # Các test ở đây kiểm luật nhóm/xếp hạng, không kiểm hạn mức điểm: cho phép cộng đúng số xin (hạn mức có test riêng ở test_rewards.py).
+    monkeypatch.setattr(groups, "_credit", lambda device_id, want: want)
     yield TestClient(m.app)
     sys.modules["serve.groups"].reset()
     sys.modules.pop("serve.app_llm", None)

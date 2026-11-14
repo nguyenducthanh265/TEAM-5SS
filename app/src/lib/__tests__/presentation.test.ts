@@ -5,9 +5,12 @@ import type { ClassifiedItem } from '../contracts';
 const item: ClassifiedItem = { name: 'Chai nhựa', groupId: 'recyclable', confidence: .9, reason: 'Bao bì nhựa' };
 
 describe('guide search', () => {
-  it('finds Vietnamese examples without requiring accents', () => {
+  it('finds Vietnamese examples without requiring accents or word order', () => {
     expect(searchGuide('vo chuoi').some(row => row.name === 'Vỏ chuối')).toBe(true);
-    expect(searchGuide('chai nhựa').some(row => row.name.includes('Chai'))).toBe(true);
+    expect(searchGuide('chai nhựa').some(row => row.name === 'Chai nước nhựa đã uống hết')).toBe(true);
+    expect(searchGuide('chai nhua').some(row => row.name === 'Chai nước nhựa đã uống hết')).toBe(true);
+    expect(searchGuide('nhựa chai').some(row => row.name === 'Chai nước nhựa đã uống hết')).toBe(true);
+    expect(searchGuide('nhua chai').some(row => row.name === 'Chai nước nhựa đã uống hết')).toBe(true);
     expect(searchGuide('PIN').some(row => row.hazardous)).toBe(true);
   });
   it('empty query returns all source examples; unrelated terms return no matches', () => {
@@ -36,11 +39,11 @@ describe('review integrity', () => {
   });
 });
 describe('tree progress respects current product thresholds', () => {
-  it('reports within-stage progress at 0/50/150/400 boundaries', () => {
-    expect(treeProgress(0)).toMatchObject({ percent: 0, remaining: 50 });
-    expect(treeProgress(100)).toMatchObject({ percent: 50, remaining: 50 });
-    expect(treeProgress(150)).toMatchObject({ percent: 0, remaining: 250 });
-    expect(treeProgress(400)).toMatchObject({ percent: 100, remaining: 0 });
-    expect(treeProgress(Number.NaN)).toMatchObject({ percent: 0, remaining: 50 });
+  it('reports within-stage progress at 0/60/300/900 boundaries', () => {
+    expect(treeProgress(0)).toMatchObject({ percent: 0, remaining: 60 });
+    expect(treeProgress(30)).toMatchObject({ percent: 50, remaining: 30 });
+    expect(treeProgress(300)).toMatchObject({ percent: 0, remaining: 600 });
+    expect(treeProgress(900)).toMatchObject({ percent: 100, remaining: 0 });
+    expect(treeProgress(Number.NaN)).toMatchObject({ percent: 0, remaining: 60 });
   });
 });

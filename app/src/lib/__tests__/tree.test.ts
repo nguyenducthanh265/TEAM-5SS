@@ -14,8 +14,8 @@ function makeProgress(overrides: Partial<Progress> = {}): Progress {
 }
 
 describe('TREE_STAGES', () => {
-  it('có đúng 4 giai đoạn với ngưỡng 0, 50, 150, 400', () => {
-    expect(TREE_STAGES.map((s) => s.minXp)).toEqual([0, 50, 150, 400]);
+  it('có đúng 4 giai đoạn với ngưỡng 0, 60, 300, 900', () => {
+    expect(TREE_STAGES.map((s) => s.minXp)).toEqual([0, 60, 300, 900]);
     expect(TREE_STAGES.map((s) => s.name)).toEqual([
       'Mầm non',
       'Cây non',
@@ -26,15 +26,15 @@ describe('TREE_STAGES', () => {
 });
 
 describe('stageFor', () => {
-  it('trả về đúng giai đoạn tại các mốc biên 0, 49, 50, 149, 150, 399, 400', () => {
+  it('trả về đúng giai đoạn tại các mốc biên 0, 59, 60, 299, 300, 899, 900', () => {
     expect(stageFor(0).name).toBe('Mầm non');
-    expect(stageFor(49).name).toBe('Mầm non');
-    expect(stageFor(50).name).toBe('Cây non');
-    expect(stageFor(149).name).toBe('Cây non');
-    expect(stageFor(150).name).toBe('Tán xanh');
-    expect(stageFor(399).name).toBe('Tán xanh');
-    expect(stageFor(400).name).toBe('Đại thụ');
-    expect(stageFor(1200).name).toBe('Đại thụ');
+    expect(stageFor(59).name).toBe('Mầm non');
+    expect(stageFor(60).name).toBe('Cây non');
+    expect(stageFor(299).name).toBe('Cây non');
+    expect(stageFor(300).name).toBe('Tán xanh');
+    expect(stageFor(899).name).toBe('Tán xanh');
+    expect(stageFor(900).name).toBe('Đại thụ');
+    expect(stageFor(2000).name).toBe('Đại thụ');
   });
 
   it('xử lý XP âm hoặc không hợp lệ về Mầm non', () => {
@@ -45,19 +45,19 @@ describe('stageFor', () => {
 
 describe('nextThreshold', () => {
   it('trả về ngưỡng kế tiếp hoặc null ở giai đoạn cuối', () => {
-    expect(nextThreshold(0)).toBe(50);
-    expect(nextThreshold(49)).toBe(50);
-    expect(nextThreshold(50)).toBe(150);
-    expect(nextThreshold(149)).toBe(150);
-    expect(nextThreshold(150)).toBe(400);
-    expect(nextThreshold(399)).toBe(400);
-    expect(nextThreshold(400)).toBeNull();
-    expect(nextThreshold(999)).toBeNull();
+    expect(nextThreshold(0)).toBe(60);
+    expect(nextThreshold(59)).toBe(60);
+    expect(nextThreshold(60)).toBe(300);
+    expect(nextThreshold(299)).toBe(300);
+    expect(nextThreshold(300)).toBe(900);
+    expect(nextThreshold(899)).toBe(900);
+    expect(nextThreshold(900)).toBeNull();
+    expect(nextThreshold(1999)).toBeNull();
   });
 
-  it('xử lý XP âm hoặc NaN trả về 50', () => {
-    expect(nextThreshold(-5)).toBe(50);
-    expect(nextThreshold(Number.NaN)).toBe(50);
+  it('xử lý XP âm hoặc NaN trả về 60', () => {
+    expect(nextThreshold(-5)).toBe(60);
+    expect(nextThreshold(Number.NaN)).toBe(60);
   });
 });
 

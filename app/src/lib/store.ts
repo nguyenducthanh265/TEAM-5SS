@@ -1,13 +1,14 @@
 // Kho dữ liệu trên máy (AsyncStorage). Mọi số bắt đầu từ 0, không có dữ liệu giả.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { Progress, SavedItem, ScanEntry } from './contracts';
+import type { Progress, RewardState, SavedItem, ScanEntry } from './contracts';
 import {
   EMPTY_PROGRESS,
   MAX_HISTORY_ITEMS,
   applySession,
   dayKey,
   entriesToSavedItems,
+  withServerReward,
 } from './progress';
 
 const KEY_PROGRESS = 'ecohanoi.progress.v1';
@@ -99,9 +100,14 @@ export function getProgress(): Promise<Progress> {
   return withLock(async () => parseProgress(await readItem(KEY_PROGRESS)));
 }
 
-/** Lưu một phiên đã xem lại: cộng XP, chuỗi ngày, thêm vào lịch sử. */
+/**
+ * Lưu một phiên đã xem lại: thêm vào lịch sử và cập nhật điểm.
+ * `reward`: kết quả claim từ SERVER (điểm và chuỗi do server tính). `null` = không hỏi được server: lưu lịch sử nhưng
+ * KHÔNG cộng điểm. Bỏ trống (undefined) chỉ để các test cũ chạy phép tính cục bộ; màn Xem lại luôn truyền giá trị.
+ */
 export function saveSession(
   entries: ScanEntry[],
+  reward?: RewardState | null,
 ): Promise<{ gained: number; progress: Progress }> {
   return withLock(async () => {
     const now = new Date();
@@ -111,7 +117,8 @@ export function saveSession(
       return { gained: 0, progress: current };
     }
     const history = parseHistory(await readItem(KEY_HISTORY));
-    const result = applySession(current, items, dayKey(now));
+    const local = applySession(current, items, dayKey(now));
+    const result = reward === undefined ? local : withServerReward(local, current, reward);
     const toStore: SavedItem[] = items.map((it) => ({
       name: it.name,
       groupId: it.groupId,

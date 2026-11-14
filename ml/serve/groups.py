@@ -22,6 +22,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from serve import rewards as _rewards
+
 MAX_XP_DELTA = 200
 MAX_ITEMS = 100
 MAX_GROUPS = 5000   # chặn việc tạo nhóm vô hạn làm đầy RAM
@@ -32,6 +34,8 @@ router = APIRouter()
 _lock = threading.Lock()
 _groups: dict[str, dict] = {}  # code -> {"xp": int, "items": int, "members": set[str]}
 _pg_schema_ready = False
+# Điểm cộng cho nhóm bị giới hạn bởi điểm thật của máy (xem rewards.credit_group). Test có thể thay hàm này.
+_credit = _rewards.credit_group
 
 
 class ScoreReq(BaseModel):
@@ -151,7 +155,11 @@ def score(req: ScoreReq):
     code = normalize_code(req.code)
     if not code:
         return _bad_code()
-    delta = min(MAX_XP_DELTA, req.xpDelta)
+    try:
+        delta = _credit(req.deviceId, min(MAX_XP_DELTA, req.xpDelta))
+    except Exception as e:  # chỉ tên lớp lỗi: không lộ chuỗi kết nối
+        print(f"GROUPS credit failed: {type(e).__name__}", flush=True)
+        return JSONResponse({"error": "storage_unavailable"}, status_code=503)
     items_delta = min(MAX_ITEMS, req.items)
     dev = _hash_device(req.deviceId)
 

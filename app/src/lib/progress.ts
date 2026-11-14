@@ -1,9 +1,12 @@
 // Quy tắc điểm và chuỗi ngày. Hàm THUẦN: không import React Native, không đọc đồng hồ, không I/O.
-import type { ClassifiedItem, Progress, SavedItem, ScanEntry } from './contracts';
+import type { ClassifiedItem, Progress, RewardState, SavedItem, ScanEntry } from './contracts';
 
 // --- Hằng số điểm (đổi ở đây) ---
-export const XP_PER_ITEM = 10; // mỗi món được xác nhận ở màn Xem lại
-export const XP_MISPLACED_BONUS = 5; // món nằm sai túi mà người dùng giữ lại (đã nhận ra)
+// Điểm thật do SERVER tính (ml/serve/rewards.py); các hằng số này chỉ để hiển thị cho khớp luật của server.
+export const XP_PER_ITEM = 2; // mỗi món AI nhận ra thật
+export const XP_MISPLACED_BONUS = 0; // không còn thưởng riêng cho món sai túi
+export const MAX_ITEMS_PER_DAY = 15; // trần số món được tính điểm mỗi ngày
+export const MIN_ITEMS_FOR_STREAK = 5; // số món tối thiểu để ngày được tính chuỗi
 export const MAX_HISTORY_ITEMS = 2000;
 
 export const EMPTY_PROGRESS: Progress = {
@@ -95,6 +98,22 @@ export function applySession(
       correctedItems: progress.correctedItems + corrected,
     },
   };
+}
+
+/**
+ * Thay điểm và chuỗi tính cục bộ bằng kết quả của SERVER (chống gian lận: đổi đồng hồ máy hay sửa dữ liệu trên máy
+ * không tăng được điểm). `reward === null` nghĩa là không hỏi được server: KHÔNG cộng điểm, giữ nguyên điểm và chuỗi cũ.
+ * Tổng món, số món đã sửa vẫn lấy từ phép tính cục bộ.
+ */
+export function withServerReward(
+  local: { gained: number; progress: Progress },
+  current: Progress,
+  reward: RewardState | null,
+): { gained: number; progress: Progress } {
+  if (reward === null) {
+    return { gained: 0, progress: { ...local.progress, xp: current.xp, streakDays: current.streakDays, lastScanDay: current.lastScanDay } };
+  }
+  return { gained: reward.gained ?? 0, progress: { ...local.progress, xp: reward.xp, streakDays: reward.streak } };
 }
 
 /**

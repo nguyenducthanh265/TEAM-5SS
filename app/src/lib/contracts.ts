@@ -39,6 +39,26 @@ export interface ScanEntry {
   corrected?: boolean; // người dùng đã sửa nhãn ở màn Xem lại
 }
 
+// Điểm và chuỗi do SERVER tính (ml/serve/rewards.py). App chỉ hiển thị, không tự quyết điểm hay ngày.
+export interface RewardState {
+  xp: number;
+  streak: number; // 0 khi chuỗi đã đứt
+  dayIndex: number; // ngày thứ mấy trong tuần chuỗi (1..7), 0 khi chưa có chuỗi
+  todayItems: number; // số món đã được tính hôm nay
+  todayCap: number; // trần món mỗi ngày
+  minItems: number; // số món tối thiểu để ngày được tính chuỗi
+  qualifiedToday: boolean;
+  nextBonus: number; // thưởng chuỗi của ngày kế tiếp
+  restoresLeft: number; // lượt khôi phục chuỗi còn lại trong tháng
+  restorable: boolean; // đang bỏ lỡ đúng 1 ngày và còn lượt khôi phục
+  today: string; // YYYY-MM-DD giờ Việt Nam theo server
+  gained?: number; // chỉ có sau khi claim
+  gainedItems?: number;
+  gainedItemXp?: number;
+  gainedBonus?: number;
+  restored?: boolean;
+}
+
 export interface Progress {
   xp: number;
   streakDays: number;
