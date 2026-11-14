@@ -1,0 +1,17 @@
+hackathon-kit/
+*.docx
+node_modules/
+.expo/
+dist/
+*.apk
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+ml/runs/
+ml/.cache/
+ml/preflight-report.md
+app/src/assets/qd87.json

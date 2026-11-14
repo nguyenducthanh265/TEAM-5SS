@@ -1,0 +1,166 @@
+{
+  "_ghi_chu": "Soạn từ bản PDF QĐ 87/2025/QĐ-UBND trong repo (Điều 5, 6, 7, 8, 24). review_status phải được hai người trong nhóm đổi thành 'đã soát' sau khi đối chiếu văn bản gốc. hard_items có 'certainty: suy luận' là chỗ văn bản không nêu đích danh món đó.",
+  "review_status": "AI soạn từ văn bản gốc, chờ 2 người soát chéo",
+  "version": 1,
+  "city": "Hà Nội",
+  "source": "Quyết định 87/2025/QĐ-UBND của UBND TP Hà Nội, Quy định quản lý chất thải rắn sinh hoạt của hộ gia đình, cá nhân",
+  "source_url": "File PDF trong repo: Quyết định 87_2025_QĐ-UBND Hà Nội quản lý chất thải rắn sinh hoạt hộ gia đình cá nhân.pdf",
+  "effective_date": "2026-01-08",
+  "effective_date_ref": "Điều 2 Quyết định",
+  "groups": [
+    {
+      "id": "recyclable",
+      "name": "Chất thải rắn có khả năng tái sử dụng, tái chế",
+      "short": "Tái chế",
+      "color": "Túi do hộ tự chọn, trừ màu xanh lá cây và màu xám (Điều 6.1.d); thùng nơi công cộng màu xanh nước biển (Điều 6.2.a)",
+      "color_hex": "#1E6FD9",
+      "ref": "Điều 5 khoản 1",
+      "examples": [
+        "Giấy: hộp, túi, ly, cốc giấy; sách, vở, báo cũ; thùng, bìa carton; lõi giấy vệ sinh; khay trứng bằng giấy; bao bì giấy không nhiễm bẩn",
+        "Nhựa: bao bì nhựa đựng thực phẩm, mỹ phẩm, dược phẩm; chai, ly, cốc nhựa; ghế, thau, chậu nhựa",
+        "Kim loại: lon, hộp nhôm, sắt đựng thực phẩm; xoong, nồi, thìa, dĩa",
+        "Thủy tinh: chai, lọ thủy tinh đựng bia, rượu, thực phẩm, mỹ phẩm; bình hoa",
+        "Vải, đồ da: quần áo, giày, dép, vali, chăn, màn, rèm",
+        "Đồ gỗ: đồ chơi, hộp, khay bằng gỗ",
+        "Cao su: đồ chơi cao su, săm, lốp",
+        "Thiết bị điện, điện tử thải bỏ: điện thoại, dây cáp, bàn phím, máy tính, đèn led, quạt điện, nồi cơm điện"
+      ],
+      "disposal": "Phân loại vào túi riêng; chuyển giao cho tổ chức, cá nhân tái sử dụng, tái chế hoặc đơn vị thu gom, hoặc giữ tại nhà và định kỳ mang đến điểm thu mua tập trung do UBND cấp xã quy định (Điều 7.2.a). Khuyến khích làm sạch bao bì, hộp, chai lọ trước khi chuyển giao (Điều 24.1).",
+      "exceptions": [
+        "Bao bì giấy đã nhiễm bẩn không thuộc nhóm này (Điều 5.1.a chỉ nêu bao bì giấy không nhiễm bẩn)",
+        "Bao bì nhựa, kim loại, thủy tinh đựng thuốc bảo vệ thực vật, axit, dầu mỡ công nghiệp, chất tẩy rửa có thành phần nguy hại là chất thải nguy hại (Điều 5.1.b, c, d và 5.3.b)",
+        "Vải, đồ da dính thuốc bảo vệ thực vật, axit, dầu mỡ công nghiệp, chất tẩy rửa nguy hại không thuộc nhóm này (Điều 5.1.đ)"
+      ]
+    },
+    {
+      "id": "food",
+      "name": "Chất thải thực phẩm",
+      "short": "Thực phẩm",
+      "color": "Túi có tổng thể màu xanh lá cây, vẫn nhìn được chất thải bên trong, không rò rỉ nước và mùi (Điều 6.1.a); thùng màu xanh lá cây (Điều 6.3.a)",
+      "color_hex": "#2E9E4F",
+      "ref": "Điều 5 khoản 2",
+      "examples": [
+        "Thức ăn thừa, thực phẩm hết hạn sử dụng",
+        "Rau, củ, quả, trái cây và phần bỏ đi sau khi sơ chế, chế biến (vỏ, cuống, lõi)",
+        "Sản phẩm bỏ đi từ thịt gia súc, gia cầm, thủy sản, hải sản"
+      ],
+      "disposal": "Có thể làm phân bón, làm thức ăn chăn nuôi, hoặc chuyển giao cho đơn vị thu gom (Điều 7.2.b). Gạn bỏ nước, buộc kín miệng túi trước khi chuyển giao (Điều 6.1.đ).",
+      "exceptions": [
+        "UBND cấp xã quyết định việc phân loại chất thải thực phẩm theo hạ tầng xử lý của địa phương (Điều 5.5): nơi chưa thu riêng thì làm theo hướng dẫn của phường, xã"
+      ]
+    },
+    {
+      "id": "other",
+      "name": "Chất thải rắn sinh hoạt khác",
+      "short": "Còn lại",
+      "color": "Túi chứa chất thải khác còn lại có tổng thể màu xám (Điều 6.1.b); thùng màu xám (Điều 6.2.b)",
+      "color_hex": "#7A7F87",
+      "ref": "Điều 5 khoản 3",
+      "examples": [
+        "Chất thải khác còn lại: thứ không xác định được thuộc nhóm tái chế hay thực phẩm (Điều 5.3.c)",
+        "Chất thải cồng kềnh: tủ, giường, nệm, bàn ghế, sofa hỏng; cành cây, gốc cây (Điều 5.3.a), chuyển giao riêng",
+        "Chất thải nguy hại trong sinh hoạt: pin, ắc quy, bóng đèn huỳnh quang, nhiệt kế thủy ngân (Điều 5.3.b), chuyển giao riêng"
+      ],
+      "disposal": "Chất thải khác còn lại chuyển giao cho đơn vị thu gom, vận chuyển (Điều 7.2.đ). Cồng kềnh và nguy hại không bỏ chung túi xám, xem mục riêng.",
+      "exceptions": []
+    }
+  ],
+  "hazardous": {
+    "regulation": "Chất thải nguy hại phát sinh trong sinh hoạt là một loại thuộc nhóm chất thải rắn sinh hoạt khác (Điều 5.3.b), phải phân loại riêng, chứa trong bao bì an toàn không phải màu xanh lá cây hay màu xám (Điều 6.1.c), giữ tại nhà hoặc mang đến điểm thu gom tập trung theo lịch của UBND cấp xã; hộ gia đình không phải trả phí cho loại này (Điều 7.2.d, Điều 24.5).",
+    "note": "Chất thải nguy hại: để riêng trong bao bì kín, mang đến điểm thu gom chất thải nguy hại của phường, xã. Không bỏ chung túi rác.",
+    "color": "Thùng màu cam, có chữ CHẤT THẢI RẮN NGUY HẠI (Điều 6.3.b)",
+    "color_hex": "#F28C28",
+    "examples": [
+      "Pin, ắc quy thải",
+      "Bóng đèn huỳnh quang",
+      "Nhiệt kế chứa thủy ngân",
+      "Bình gas mini",
+      "Bao bì đựng thuốc bảo vệ thực vật, axit, dung môi, chất tẩy rửa có thành phần nguy hại",
+      "Sơn, mực, keo có thành phần nguy hại",
+      "Găng tay, giẻ lau dính dầu, hóa chất",
+      "Kim tiêm, khẩu trang, bông băng nhiễm khuẩn từ người bệnh"
+    ]
+  },
+  "bulky": {
+    "regulation": "Chất thải cồng kềnh thuộc nhóm chất thải rắn sinh hoạt khác (Điều 5.3.a). Khi phát sinh phải liên hệ đơn vị thu gom để thỏa thuận chuyển giao và trả giá dịch vụ, hoặc tự chở đến điểm thu gom tập trung do UBND cấp xã quy định thì không mất phí (Điều 7.2.c).",
+    "note": "Đồ cồng kềnh: gọi đơn vị thu gom, hoặc tự chở đến điểm tập kết của phường, xã.",
+    "examples": ["Tủ, giường, nệm, bàn ghế, sofa hỏng", "Tủ sắt, khung cánh cửa", "Gốc cây, thân cây, cành cây"]
+  },
+  "refusal": {
+    "regulation": "Đơn vị thu gom có quyền từ chối thu gom, vận chuyển chất thải của hộ gia đình, cá nhân không phân loại, không sử dụng bao bì đúng quy định (Điều 8, Điều 23 khoản 5).",
+    "handover_time": "Tại đô thị: chuyển giao trực tiếp hoặc đặt túi tại vị trí quy định từ 18 giờ đến 22 giờ vào các ngày theo hướng dẫn của UBND cấp xã (Điều 7.1.a)."
+  },
+  "hard_items": [
+    {
+      "name": "Hộp cơm nhựa còn dính thức ăn",
+      "group_id": "recyclable",
+      "certainty": "suy luận",
+      "why": "Bao bì nhựa đựng thực phẩm thuộc nhóm tái chế (Điều 5.1.b); văn bản khuyến khích làm sạch hộp trước khi chuyển giao (Điều 24.1). Thức ăn thừa trong hộp bỏ vào nhóm thực phẩm (Điều 5.2).",
+      "tip": "Gạt thức ăn thừa sang túi thực phẩm, tráng sơ hộp rồi bỏ túi tái chế."
+    },
+    {
+      "name": "Hộp sữa giấy",
+      "group_id": "recyclable",
+      "certainty": "suy luận",
+      "why": "Hộp bằng giấy và bao bì giấy không nhiễm bẩn thuộc nhóm tái chế (Điều 5.1.a).",
+      "tip": "Uống hết, tráng nước, ép dẹp."
+    },
+    {
+      "name": "Giấy ăn dính dầu mỡ",
+      "group_id": "other",
+      "certainty": "suy luận",
+      "why": "Nhóm tái chế chỉ gồm giấy, bao bì giấy không nhiễm bẩn (Điều 5.1.a); giấy đã bẩn không thuộc nhóm 1, 2 nên là chất thải khác còn lại (Điều 5.3.c).",
+      "tip": "Bỏ túi màu xám."
+    },
+    {
+      "name": "Túi nilon đựng đồ ăn",
+      "group_id": "recyclable",
+      "certainty": "suy luận",
+      "why": "Bao bì nhựa đựng thực phẩm thuộc nhóm tái chế (Điều 5.1.b). Văn bản không nêu riêng túi nilon bẩn; nhóm cần soát theo hướng dẫn kỹ thuật 9368/BTNMT-KSONMT (Điều 5.4).",
+      "tip": "Giũ sạch, để khô rồi gom chung với nhựa."
+    },
+    {
+      "name": "Pin AA đã hết",
+      "group_id": "other",
+      "hazardous": true,
+      "certainty": "nêu đích danh",
+      "why": "Các loại pin, ắc quy thải là chất thải nguy hại trong sinh hoạt, thuộc nhóm chất thải rắn sinh hoạt khác (Điều 5.3.b); phải để riêng và mang đến điểm thu gom của phường, xã (Điều 7.2.d).",
+      "tip": "Không bỏ túi rác. Gom vào hộp kín, mang đến điểm thu gom chất thải nguy hại."
+    },
+    {
+      "name": "Chai nước nhựa đã uống hết",
+      "group_id": "recyclable",
+      "certainty": "nêu đích danh",
+      "why": "Bao bì nhựa đựng thực phẩm (Điều 5.1.b).",
+      "tip": "Đổ hết nước, bóp dẹp."
+    },
+    {
+      "name": "Lon nước ngọt",
+      "group_id": "recyclable",
+      "certainty": "nêu đích danh",
+      "why": "Bao bì nhôm, sắt đựng thực phẩm (Điều 5.1.c).",
+      "tip": "Tráng sơ, bóp dẹp."
+    },
+    {
+      "name": "Vỏ chuối",
+      "group_id": "food",
+      "certainty": "nêu đích danh",
+      "why": "Trái cây và phần thải bỏ sau khi sơ chế, chế biến (Điều 5.2).",
+      "tip": "Bỏ túi màu xanh lá cây, gạn bỏ nước."
+    },
+    {
+      "name": "Bã trà, bã cà phê",
+      "group_id": "food",
+      "certainty": "suy luận",
+      "why": "Phần thải bỏ sau khi chế biến món ăn, đồ uống từ thực vật (Điều 5.2). Văn bản không nêu đích danh bã trà.",
+      "tip": "Để ráo nước rồi bỏ túi thực phẩm."
+    },
+    {
+      "name": "Thùng carton giao hàng",
+      "group_id": "recyclable",
+      "certainty": "nêu đích danh",
+      "why": "Thùng, bìa carton (Điều 5.1.a).",
+      "tip": "Gỡ băng dính, ép dẹp."
+    }
+  ]
+}

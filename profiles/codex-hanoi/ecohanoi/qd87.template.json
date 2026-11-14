@@ -1,0 +1,53 @@
+{
+  "_huong_dan": "Mẫu tham khảo. Nếu repo đã có rules/qd87.json thì giữ file của repo, chỉ đối chiếu đủ trường. Mọi ô chưa điền phải do NGƯỜI điền từ văn bản gốc QĐ 87/2025/QĐ-UBND, không để AI đoán. Kiểm: python ml/scripts/check_rules.py rules/qd87.json",
+  "version": 1,
+  "city": "Hà Nội",
+  "source": "Quyết định 87/2025/QĐ-UBND của UBND TP Hà Nội",
+  "source_url": "TODO: link văn bản gốc nhóm đã đọc",
+  "effective_date": "TODO: xác nhận theo văn bản (báo chí đưa tin 08/01/2026)",
+  "groups": [
+    {
+      "id": "recyclable",
+      "name": "Chất thải có khả năng tái sử dụng, tái chế",
+      "short": "Tái chế",
+      "color": "TODO: màu bao bì/thùng theo quy định",
+      "examples": ["TODO: chép ví dụ từ phụ lục"],
+      "disposal": "TODO: cách chuyển giao theo quy định",
+      "exceptions": ["TODO: ví dụ bao bì giấy nhiễm bẩn, nhựa nhiều lớp"]
+    },
+    {
+      "id": "food",
+      "name": "Chất thải thực phẩm",
+      "short": "Thực phẩm",
+      "color": "TODO: màu bao bì/thùng theo quy định",
+      "examples": ["TODO: chép ví dụ từ phụ lục"],
+      "disposal": "TODO: cách chuyển giao theo quy định",
+      "exceptions": ["TODO: ví dụ xương lớn, vỏ cứng, dầu mỡ thải lượng lớn"]
+    },
+    {
+      "id": "other",
+      "name": "Chất thải rắn sinh hoạt khác",
+      "short": "Còn lại",
+      "color": "TODO: màu bao bì/thùng theo quy định",
+      "examples": ["TODO: chép ví dụ từ phụ lục"],
+      "disposal": "TODO: cách chuyển giao theo quy định",
+      "exceptions": []
+    }
+  ],
+  "hazardous": {
+    "regulation": "TODO: chất thải nguy hại (pin, ắc quy, bóng đèn...) thuộc nhóm nào và chuyển giao thế nào theo QĐ 87",
+    "note": "TODO: câu hướng dẫn hiển thị cho người dùng",
+    "examples": ["TODO"]
+  },
+  "bulky": {
+    "regulation": "TODO: chất thải cồng kềnh xử lý thế nào theo QĐ 87",
+    "note": "TODO"
+  },
+  "hard_items": [
+    { "name": "Hộp cơm nhựa còn dính thức ăn", "group_id": "TODO", "why": "TODO: trích điều khoản/phụ lục" },
+    { "name": "Hộp sữa giấy", "group_id": "TODO", "why": "TODO" },
+    { "name": "Giấy ăn dính dầu mỡ", "group_id": "TODO", "why": "TODO" },
+    { "name": "Túi nilon đựng đồ ăn", "group_id": "TODO", "why": "TODO" },
+    { "name": "Pin AA đã hết", "group_id": "TODO", "why": "TODO" }
+  ]
+}
