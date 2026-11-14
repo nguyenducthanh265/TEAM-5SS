@@ -1,4 +1,4 @@
-// Khoảnh khắc nhận diện: nhãn nhóm + "+XP" bay lên trong ~250 ms rồi mờ dần. Chỉ đổi transform/opacity.
+// Khoảnh khắc nhận diện: nhãn nhóm bay lên trong ~250 ms rồi mờ dần. Chỉ đổi transform/opacity.
 import { useEffect } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
@@ -7,7 +7,6 @@ import { textOn } from '@/components/scan/labels';
 
 type Props = {
   label: string;
-  xp: number;
   color: string;
 };
 
@@ -16,7 +15,7 @@ const HOLD_MS = 900;
 const FADE_MS = 220;
 
 /** Chạy một lần khi mount. Muốn chạy lại: đổi `key` ở nơi gọi. */
-export function FlyLabel({ label, xp, color }: Props) {
+export function FlyLabel({ label, color }: Props) {
   const rise = useSharedValue(0);
   const fade = useSharedValue(1);
 
@@ -38,7 +37,6 @@ export function FlyLabel({ label, xp, color }: Props) {
           {label}
         </Text>
       </Animated.View>
-      <Text style={styles.xp}>Lưu để nhận +{xp} XP</Text>
     </Animated.View>
   );
 }
@@ -47,13 +45,4 @@ const styles = StyleSheet.create({
   wrap: { alignItems: 'center' },
   pill: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 999, maxWidth: 300 },
   label: { fontSize: 20, fontWeight: '800' },
-  xp: {
-    marginTop: 6,
-    fontSize: 17,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
 });

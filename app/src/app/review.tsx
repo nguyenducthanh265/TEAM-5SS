@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupPickerSheet } from '@/components/review/GroupPickerSheet';
@@ -8,8 +8,9 @@ import { ReviewItemCard } from '@/components/review/ReviewItemCard';
 import { runWithSaveLock } from '@/components/review/saveLock';
 import type { ScanEntry } from '@/lib/contracts';
 import { postGroupScore } from '@/lib/groupApi';
-import { XP_MISPLACED_BONUS, XP_PER_ITEM } from '@/lib/progress';
+import { MAX_ITEMS_PER_DAY, XP_PER_ITEM } from '@/lib/progress';
 import type { ReviewItem } from '@/lib/progress';
+import { claimProgress } from '@/lib/rewardsApi';
 import { UNKNOWN_GROUP } from '@/lib/rules';
 import { remove } from '@/lib/scanQueue';
 import { getSessionEntries } from '@/lib/session';
@@ -59,10 +60,8 @@ export default function ReviewScreen(): React.JSX.Element {
 
   const unknownCount = rows.filter((r) => r.item.groupId === UNKNOWN_GROUP.id).length;
   const needsConfirmation = !canSaveReview(rows.map(row => row.item));
-  const expectedXp = rows.reduce(
-    (sum, r) => sum + XP_PER_ITEM + (r.item.misplaced === true ? XP_MISPLACED_BONUS : 0),
-    0,
-  );
+  // Điểm món dự kiến (tối đa MAX_ITEMS_PER_DAY món/ngày). Điểm thật, gồm cả thưởng chuỗi, do server tính khi lưu.
+  const expectedXp = Math.min(rows.length, MAX_ITEMS_PER_DAY) * XP_PER_ITEM;
   const pickedRow = picked
     ? rows.find((r) => r.entryId === picked.entryId && r.index === picked.index)
     : undefined;
@@ -114,7 +113,12 @@ export default function ReviewScreen(): React.JSX.Element {
     setSaveError(false);
     try {
       await runWithSaveLock(savingRef, async () => {
-        const { gained } = await saveSession(entries);
+        // Điểm và chuỗi do SERVER tính (chống gian lận). Không hỏi được server thì vẫn lưu ảnh nhưng KHÔNG cộng điểm giả.
+        const reward = await claimProgress(await getDeviceId(), rows.length);
+        const { gained } = await saveSession(entries, reward);
+        if (reward === null) {
+          Alert.alert('Chưa cộng được điểm', 'Mất kết nối máy chủ nên điểm chưa được tính. Các món đã được lưu trên máy.');
+        }
         // Điểm nhóm: gửi nền, lỗi mạng bỏ qua, không chặn việc lưu trên máy.
         if (gained > 0) {
           const itemCount = rows.length;
@@ -130,7 +134,15 @@ export default function ReviewScreen(): React.JSX.Element {
           })();
         }
         for (const entry of entries) remove(entry.id);
-        router.replace({ pathname: '/(tabs)/garden', params: { gained: String(gained) } });
+        router.replace({
+          pathname: '/(tabs)/garden',
+          params: {
+            gained: String(gained),
+            gainedBonus: String(reward?.gainedBonus ?? 0),
+            gainedItems: String(reward?.gainedItems ?? 0),
+            restored: reward?.restored === true ? '1' : '0',
+          },
+        });
       });
     } catch {
       setSaveError(true);
