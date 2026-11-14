@@ -1,0 +1,31 @@
+# Render Blueprint cho backend EcoHanoi. Render Dashboard > New > Blueprint > chọn repo.
+# Lần tạo đầu Render hỏi giá trị các biến sync: false (key, model). Chưa deploy thật.
+# KHÔNG đặt rootDir: ml. Theo tài liệu Render (monorepo-support): "Files outside your service's root directory are not
+# available to the service at build time or at runtime", mà file luật nằm ở rules/qd87.json ngoài ml/.
+# Vì vậy lệnh chạy từ gốc repo rồi cd vào ml/.
+services:
+  - type: web
+    name: ecohanoi-api
+    runtime: python
+    plan: free            # gói free ngủ khi rảnh: request đầu sau khi ngủ rất chậm. Gọi /health trước khi demo.
+    buildCommand: pip install -r ml/requirements-llm.txt
+    startCommand: cd ml && uvicorn serve.app_llm:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: SYSTEM
+        value: examples.waste_classifier:run
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        sync: false       # đúng model có nhận ảnh mà bạn đã gọi thử thành công
+      # RULES_PATH không đặt: mặc định <gốc repo>/rules/qd87.json tính từ vị trí ml/examples/waste_classifier.py
+      - key: MAX_CHARS
+        value: "4000"     # chỉ cho /predict (chữ); ảnh đi qua /classify
+      - key: MAX_IMAGE_CHARS
+        value: "1500000"  # ảnh base64 ~1024 px gửi vào /classify
+      - key: TIMEOUT_S
+        value: "20"
+      - key: MAX_INFLIGHT
+        value: "8"
+      - key: PYTHON_VERSION
+        value: "3.12.4"

@@ -20,14 +20,18 @@ Hành vi khi chậm/lỗi (để một đợt request chậm không làm nghẽn
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import importlib
 import inspect
+import json
 import os
 import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FTimeout
+from typing import Literal
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -153,3 +157,92 @@ def _predict(req: Req, request: Request):
         return _fallback(t, "timeout")
     except Exception as e:
         return _fallback(t, type(e).__name__)
+
+
+# ---------- EcoHanoi: POST /classify (ảnh rác -> món + nhóm theo file luật) ----------
+# Dùng chung hàm hệ thống, timeout, giới hạn đồng thời và bộ đếm /stats với /predict.
+# Ảnh chỉ nằm trong bộ nhớ của request: không ghi đĩa, không in ra log.
+MAX_IMAGE_CHARS = int(os.environ.get("MAX_IMAGE_CHARS", "1500000"))
+_IMAGE_MIMES = ("image/jpeg", "image/png", "image/webp")
+_ITEM_KEYS = (("name", "name"), ("group_id", "groupId"), ("confidence", "confidence"), ("reason", "reason"), ("tip", "tip"),
+              ("hazardous", "hazardous"), ("sellable", "sellable"), ("misplaced", "misplaced"))
+
+
+class ClassifyReq(BaseModel):
+    image: str = Field(min_length=1)
+    mode: Literal["item", "bag"] = "item"
+
+
+def _data_url(image):
+    """base64 trần hoặc data URL -> data URL đã kiểm. Trả None nếu không phải ảnh base64 hợp lệ."""
+    s = image.strip()
+    mime = "image/jpeg"
+    if s.startswith("data:"):
+        head, sep, s = s.partition(",")
+        mime = head[5:].split(";")[0].lower()
+        if not sep or mime not in _IMAGE_MIMES or not head.endswith(";base64"):
+            return None
+    try:
+        raw = base64.b64decode(s, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+    if len(raw) < 16:
+        return None
+    return f"data:{mime};base64,{s}"
+
+
+def _classify_fallback(t, reason):
+    return {"items": [], "source": "fallback", "latencyMs": round((time.time() - t) * 1000), "error": reason}
+
+
+def _camel_items(output):
+    """Chuỗi JSON {"items":[...snake_case]} của hệ thống -> list món khóa camelCase. Sai dạng thì ném ValueError."""
+    d = json.loads(output)
+    if not isinstance(d, dict) or not isinstance(d.get("items"), list):
+        raise ValueError("bad_shape")
+    return [{dst: it[src] for src, dst in _ITEM_KEYS if src in it} for it in d["items"] if isinstance(it, dict)]
+
+
+@app.post("/classify")
+def classify(req: ClassifyReq, request: Request):
+    if len(req.image) > MAX_IMAGE_CHARS:
+        return JSONResponse({"items": [], "source": "fallback", "error": "image_too_large"}, status_code=413)
+    image = _data_url(req.image)
+    if image is None:
+        return JSONResponse({"items": [], "source": "fallback", "error": "bad_image"}, status_code=422)
+    res = _classify(image, req.mode, request)
+    body = res if isinstance(res, dict) else None
+    _record(body["source"] if body else "busy", request.headers.get("x-device-id"), body.get("latencyMs") if body else None)
+    return res
+
+
+def _classify(image, mode, request: Request):
+    t = time.time()
+    if ALLOW_FORCE_FALLBACK and request.headers.get("x-force-fallback") == "1":
+        return _classify_fallback(t, "forced")
+    if not slots.acquire(blocking=False):
+        return JSONResponse({"items": [], "source": "busy", "error": "too_many_inflight"}, status_code=503)
+    try:
+        fut = pool.submit(_run_and_release, system, json.dumps({"image": image, "mode": mode}))
+    except Exception as e:
+        slots.release()
+        return _classify_fallback(t, type(e).__name__)
+    try:
+        n = normalize(fut.result(timeout=TIMEOUT_S))
+        if not n["ok"]:
+            return _classify_fallback(t, n["error"])
+        try:
+            items = _camel_items(n["output"])
+        except ValueError:  # hệ thống không trả JSON đúng dạng (ví dụ SYSTEM không phải bộ phân loại)
+            return _classify_fallback(t, "bad_output")
+        return {"items": items, "source": "ai", "latencyMs": round((time.time() - t) * 1000)}
+    except FTimeout:
+        fut.cancel()
+        return _classify_fallback(t, "timeout")
+    except Exception as e:
+        return _classify_fallback(t, type(e).__name__)  # chỉ tên lớp lỗi: không lộ key hay nội dung ảnh
+
+
+from serve.groups import router as _groups_router  # noqa: E402
+
+app.include_router(_groups_router)
