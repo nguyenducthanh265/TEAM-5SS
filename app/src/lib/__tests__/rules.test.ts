@@ -4,7 +4,9 @@ import {
   UNKNOWN_GROUP,
   getGroup,
   getGroups,
+  getHardItems,
   getHazardous,
+  getReviewStatus,
   groupColor,
   groupShort,
   isValidGroupId,
@@ -48,5 +50,26 @@ describe('rules (QĐ 87)', () => {
     expect(haz.color_hex).toMatch(/^#[0-9A-Fa-f]{6}$/);
     expect(Array.isArray(haz.examples)).toBe(true);
     expect(haz.examples.length).toBeGreaterThan(0);
+  });
+
+  test('getHardItems trả về danh sách món hay gặp hợp lệ', () => {
+    const items = getHardItems();
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) {
+      expect(item.name.length).toBeGreaterThan(0);
+      expect(isValidGroupId(item.group_id)).toBe(true);
+      expect(item.certainty.length).toBeGreaterThan(0);
+      expect(item.why.length).toBeGreaterThan(0);
+      expect(item.tip.length).toBeGreaterThan(0);
+      if (item.hazardous !== undefined) {
+        expect(typeof item.hazardous).toBe('boolean');
+      }
+    }
+  });
+
+  test('getReviewStatus trả về chuỗi trạng thái soát xét không rỗng', () => {
+    const status = getReviewStatus();
+    expect(typeof status).toBe('string');
+    expect(status.trim().length).toBeGreaterThan(0);
   });
 });

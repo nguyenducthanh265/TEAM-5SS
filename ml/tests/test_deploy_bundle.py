@@ -38,3 +38,18 @@ def test_render_and_docker_start_same_app():
     assert "serve.app_llm:app" in render and "serve.app_llm:app" in docker
     assert "requirements-llm.txt" in render and "requirements-llm.txt" in docker
     assert re.search(r"key: ANTHROPIC_API_KEY\s*\n\s*sync: false", render)  # key không nằm trong file
+
+
+def test_root_render_blueprint_matches_ecohanoi():
+    repo_root = ROOT.parent
+    render = (repo_root / "render.yaml").read_text(encoding="utf-8")
+    reqs = (ROOT / "requirements-llm.txt").read_text(encoding="utf-8")
+
+    assert re.search(r"^\s*buildCommand:.*ml/requirements-llm\.txt\b", render, re.MULTILINE)
+    assert "psycopg[binary]" in reqs
+    assert re.search(r"^\s*startCommand:.*\bcd\s+ml\b.*serve\.app_llm:app\b", render, re.MULTILINE)
+    assert re.search(r"key:\s*SYSTEM\s*\n\s*value:\s*examples\.waste_classifier:run\b", render)
+    for key in ("OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_REASONING_EFFORT"):
+        assert re.search(rf"key:\s*{key}\s*\n\s*sync:\s*false\b", render), f"{key} must have sync: false"
+    assert (repo_root / "rules" / "qd87.json").is_file()
+

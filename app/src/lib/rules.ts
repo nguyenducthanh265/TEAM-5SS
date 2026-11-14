@@ -1,6 +1,15 @@
 import qd87 from '@/assets/qd87.json';
 import type { RuleGroup } from '@/lib/contracts';
 
+export interface HardItem {
+  name: string;
+  group_id: string;
+  hazardous?: boolean;
+  certainty: string;
+  why: string;
+  tip: string;
+}
+
 interface HazardousRule {
   note: string;
   color_hex: string;
@@ -8,8 +17,10 @@ interface HazardousRule {
 }
 
 interface RulesFile {
+  review_status: string;
   groups: RuleGroup[];
   hazardous: HazardousRule;
+  hard_items: HardItem[];
 }
 
 const data = qd87 as RulesFile;
@@ -35,6 +46,14 @@ export function getHazardous(): HazardousRule {
     color_hex: data.hazardous.color_hex,
     examples: data.hazardous.examples,
   };
+}
+
+export function getHardItems(): HardItem[] {
+  return data.hard_items;
+}
+
+export function getReviewStatus(): string {
+  return data.review_status;
 }
 
 /** Chỉ trả về true với id nhóm hợp lệ trong file luật; 'unknown' trả về false. */

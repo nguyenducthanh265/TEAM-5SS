@@ -1,7 +1,6 @@
-import qd87 from '@/assets/qd87.json';
 import type { ClassifiedItem } from './contracts';
 import type { ReviewItem } from './progress';
-import { getGroup, getHazardous, isValidGroupId } from './rules';
+import { getGroup, getHardItems, getHazardous, isValidGroupId } from './rules';
 import { nextThreshold, stageFor } from './tree';
 
 export interface GuideExample {
@@ -20,9 +19,9 @@ function normalize(value: string): string {
 /** Search only the examples maintained with the project's rule source. */
 export function searchGuide(query: string): GuideExample[] {
   const term=normalize(query);
-  return qd87.hard_items.map(row=>({
+  return getHardItems().map(row=>({
     name:row.name,groupId:row.group_id,why:row.why,tip:row.tip,
-    hazardous:'hazardous' in row && row.hazardous === true,certainty:row.certainty,
+    hazardous:row.hazardous === true,certainty:row.certainty,
   })).filter(row=>normalize(`${row.name} ${getGroup(row.groupId)?.short ?? ''}`).includes(term));
 }
 
