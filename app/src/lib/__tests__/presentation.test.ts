@@ -7,6 +7,7 @@ const item: ClassifiedItem = { name: 'Chai nhựa', groupId: 'recyclable', confi
 describe('guide search', () => {
   it('finds Vietnamese examples without requiring accents', () => {
     expect(searchGuide('vo chuoi').some(row => row.name === 'Vỏ chuối')).toBe(true);
+    expect(searchGuide('chai nhựa').some(row => row.name.includes('Chai'))).toBe(true);
     expect(searchGuide('PIN').some(row => row.hazardous)).toBe(true);
   });
   it('empty query returns all source examples; unrelated terms return no matches', () => {

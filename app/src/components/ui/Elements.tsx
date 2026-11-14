@@ -5,8 +5,13 @@ import { theme } from '@/lib/theme';
 import { groupColor } from '@/lib/rules';
 
 export type IconName = React.ComponentProps<typeof Ionicons>['name'];
+const GROUP_ICONS: Record<string, IconName> = {
+  recyclable: 'refresh-outline',
+  food: 'nutrition-outline',
+  other: 'trash-outline',
+};
 export function GroupIcon({ id, size=22 }: { id: string; size?: number }): React.JSX.Element {
-  const name: IconName = id==='recyclable'?'refresh-outline':id==='food'?'nutrition-outline':'trash-outline';
+  const name: IconName = GROUP_ICONS[id] ?? 'albums-outline';
   return <View style={[styles.groupIcon, { backgroundColor: `${groupColor(id)}15` }]}><Ionicons name={name} size={size} color={groupColor(id)} /></View>;
 }
 export function Heading({ eyebrow, title, description }: { eyebrow?: string; title: string; description?: string }): React.JSX.Element {
