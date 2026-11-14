@@ -113,6 +113,19 @@ def test_classify_validates_input(api):
     assert c.get("/stats").json()["fallback"] == 0  # request sai không tính vào số liệu
 
 
+def test_classify_rejects_oversized_content_length_before_reading_body(api):
+    m, c = api(MAX_IMAGE_CHARS="200")
+    called = []
+    m.system = lambda x: called.append(x) or '{"items": []}'
+    # Body là JSON hỏng để chứng minh middleware trả 413 trước khi FastAPI parse body (nếu parse sẽ ra 422)
+    oversized_invalid_json = b"{hong" + b"x" * 1220  # 1225 > 200 + 1024
+    r = c.post("/classify", content=oversized_invalid_json, headers={"Content-Type": "application/json"})
+    assert r.status_code == 413
+    assert r.json() == {"items": [], "source": "fallback", "error": "image_too_large"}
+    assert called == []
+    assert c.get("/stats").json()["fallback"] == 0
+
+
 def test_classify_force_fallback_header(api):
     m, c = api(ALLOW_FORCE_FALLBACK="1")
     _with_fake_model(m, json.dumps({"items": [ITEM]}))
@@ -144,3 +157,17 @@ def test_predict_health_still_work_with_classifier_system(api):
     _with_fake_model(m, json.dumps({"items": [ITEM]}))
     r = c.post("/predict", json={"input": "chai nhựa"}).json()
     assert r["source"] == "ai" and json.loads(r["output"])["items"][0]["group_id"] == "recyclable"
+
+
+@pytest.mark.parametrize("items", [
+    [{}], [None], [dict(ITEM, confidence="high")], [dict(ITEM, confidence=True)],
+    [dict(ITEM, confidence=float("inf"))], [dict(ITEM, hazardous="false")],
+    [dict(ITEM, name="")], [dict(ITEM, tip=[])],
+])
+def test_classify_rejects_invalid_system_item_schema(api, items):
+    m, c = api()
+    m.system = lambda text: json.dumps({"items": items})
+    body = c.post("/classify", json={"image": IMG}).json()
+    assert body["source"] == "fallback" and body["items"] == [] and body["error"] == "bad_output"
+    stats = c.get("/stats").json()
+    assert stats["ai_requests"] == 0 and stats["fallback"] == 1

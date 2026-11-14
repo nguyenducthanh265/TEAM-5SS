@@ -26,6 +26,7 @@ import hashlib
 import importlib
 import inspect
 import json
+import math
 import os
 import sys
 import threading
@@ -163,9 +164,23 @@ def _predict(req: Req, request: Request):
 # Dùng chung hàm hệ thống, timeout, giới hạn đồng thời và bộ đếm /stats với /predict.
 # Ảnh chỉ nằm trong bộ nhớ của request: không ghi đĩa, không in ra log.
 MAX_IMAGE_CHARS = int(os.environ.get("MAX_IMAGE_CHARS", "1500000"))
+_MAX_CLASSIFY_BYTES = MAX_IMAGE_CHARS + 1024
 _IMAGE_MIMES = ("image/jpeg", "image/png", "image/webp")
 _ITEM_KEYS = (("name", "name"), ("group_id", "groupId"), ("confidence", "confidence"), ("reason", "reason"), ("tip", "tip"),
               ("hazardous", "hazardous"), ("sellable", "sellable"), ("misplaced", "misplaced"))
+
+
+@app.middleware("http")
+async def _reject_oversized_classify(request: Request, call_next):
+    if request.method == "POST" and request.url.path == "/classify":
+        raw_len = request.headers.get("content-length")
+        if raw_len is not None:
+            try:
+                if int(raw_len) > _MAX_CLASSIFY_BYTES:
+                    return JSONResponse({"items": [], "source": "fallback", "error": "image_too_large"}, status_code=413)
+            except ValueError:
+                pass
+    return await call_next(request)
 
 
 class ClassifyReq(BaseModel):
@@ -200,7 +215,21 @@ def _camel_items(output):
     d = json.loads(output)
     if not isinstance(d, dict) or not isinstance(d.get("items"), list):
         raise ValueError("bad_shape")
-    return [{dst: it[src] for src, dst in _ITEM_KEYS if src in it} for it in d["items"] if isinstance(it, dict)]
+    result = []
+    for it in d["items"]:
+        if not isinstance(it, dict) or any(src not in it for src, _ in _ITEM_KEYS):
+            raise ValueError("bad_item")
+        if any(not isinstance(it[k], str) for k in ("name", "group_id", "reason", "tip")):
+            raise ValueError("bad_item_text")
+        if not it["name"].strip() or not it["group_id"].strip():
+            raise ValueError("empty_item_text")
+        conf = it["confidence"]
+        if type(conf) not in (int, float) or not math.isfinite(conf) or not 0 <= conf <= 1:
+            raise ValueError("bad_item_confidence")
+        if any(type(it[k]) is not bool for k in ("hazardous", "sellable", "misplaced")):
+            raise ValueError("bad_item_flag")
+        result.append({dst: it[src] for src, dst in _ITEM_KEYS})
+    return result
 
 
 @app.post("/classify")
