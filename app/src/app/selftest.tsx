@@ -109,7 +109,7 @@ export default function SelftestScreen() {
   }, [run]);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}>
+    <View style={[styles.root, { paddingTop: 16, paddingBottom: insets.bottom + 16 }]}>
       <Text style={styles.title}>Tự kiểm luồng AI</Text>
       <Text style={styles.sub}>Gửi ảnh mẫu đóng kèm tới máy chủ, đúng như khi bạn chụp.</Text>
 
