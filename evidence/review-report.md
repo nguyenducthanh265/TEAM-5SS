@@ -12,3 +12,12 @@
 - `app/src/app/review.tsx:124` (AG-06): Gọi `clear()` của `scanQueue.ts` thay vì `clearSession()` để dọn luôn `waiting` và `sizes`.
 - `app/src/app/selftest.tsx:112` (AG-05): Bỏ `insets.top` hoặc tắt header ở `_layout.tsx:22` để tránh khoảng trống kép ở đỉnh màn hình.
 - `app/src/lib/aiClient.ts:40` (AG-04): Hạ giới hạn `cut` từ `160`/`120` về `120`/`80` cho khớp `contracts.ts:12-13`.
+
+## Lần 2
+### Chặn (chỉ còn việc thuộc NGƯỜI)
+- `app/eas.json:12` (NGƯỜI / Điều phối): Thay URL mẫu `https://TEN-BACKEND.onrender.com` bằng URL Render thật trước khi build APK.
+- `rules/qd87.json:3` (NGƯỜI): Hai người đối chiếu văn bản PDF gốc và cập nhật `review_status` trước khi chốt bản nộp.
+### Nên sửa
+- Không còn lỗi code/bảo mật; FIX-01..FIX-07 đã sửa đạt (`review.tsx` khóa `savingRef`, `requirements-llm.txt` + `render.yaml`, `groups.py` `MAX_GROUPS`, `app_llm.py` `Content-Length` 413, `aiClient.ts` cắt 120/80, `groupApi.ts` + `TeamCard.tsx` tách 404/lỗi mạng, `selftest.tsx` bỏ `insets.top`).
+### Bỏ qua được
+- `app/src/app/review.tsx:132` (AG-06): Đã xóa từng `done` entry qua `remove(entry.id)` và chặn lưu khi `hasPending`; không ảnh hưởng luồng chính.
