@@ -53,7 +53,7 @@ async function runSelftest(): Promise<Outcome> {
   if (result.items.length === 0) {
     return { ok: false, reason: 'ai-no-items' };
   }
-  const valid = result.items.some((i) => i.groupId !== 'unknown' && isValidGroupId(i.groupId));
+  const valid = result.items.every((i) => i.groupId !== 'unknown' && isValidGroupId(i.groupId));
   if (!valid) {
     return { ok: false, reason: 'ai-group-not-in-rules' };
   }
