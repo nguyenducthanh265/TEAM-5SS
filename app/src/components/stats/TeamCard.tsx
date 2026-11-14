@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { fetchGroup, normalizeGroupCode } from '@/lib/groupApi';
+import { fetchGroupResult, normalizeGroupCode } from '@/lib/groupApi';
 import type { GroupInfo } from '@/lib/groupApi';
 import { getGroupCode, setGroupCode } from '@/lib/store';
 import { theme } from '@/lib/theme';
@@ -11,7 +11,7 @@ interface Props {
   refreshKey: number;
 }
 
-type Remote = 'idle' | 'loading' | 'ready' | 'unavailable';
+type Remote = 'idle' | 'loading' | 'ready' | 'not_found' | 'error';
 
 /** Thẻ "Nhóm của bạn": nhập mã nhóm, xem XP nhóm + bảng xếp hạng. Không có số từ server thì không hiện số. */
 export function TeamCard({ refreshKey }: Props): React.JSX.Element {
@@ -20,23 +20,35 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
   const [invalid, setInvalid] = useState(false);
   const [info, setInfo] = useState<GroupInfo | null>(null);
   const [remote, setRemote] = useState<Remote>('idle');
+  const [storageError, setStorageError] = useState(false);
+  const [savingCode, setSavingCode] = useState(false);
 
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const saved = await getGroupCode();
-      if (!alive) return;
-      setCode(saved);
-      if (!saved) {
-        setInfo(null);
-        setRemote('idle');
-        return;
+      try {
+        const saved = await getGroupCode();
+        if (!alive) return;
+        setStorageError(false);
+        setCode(saved);
+        if (!saved) {
+          setInfo(null);
+          setRemote('idle');
+          return;
+        }
+        setRemote('loading');
+        const res = await fetchGroupResult(saved);
+        if (!alive) return;
+        if (res.status === 'ok') {
+          setInfo(res.data);
+          setRemote('ready');
+        } else {
+          setInfo(null);
+          setRemote(res.status);
+        }
+      } catch {
+        if (alive) setStorageError(true);
       }
-      setRemote('loading');
-      const data = await fetchGroup(saved);
-      if (!alive) return;
-      setInfo(data);
-      setRemote(data ? 'ready' : 'unavailable');
     })();
     return () => {
       alive = false;
@@ -44,40 +56,57 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
   }, [refreshKey]);
 
   const onJoin = useCallback(async () => {
+    if (savingCode) return;
     const clean = normalizeGroupCode(input);
     if (!clean) {
       setInvalid(true);
       return;
     }
     setInvalid(false);
+    setStorageError(false);
+    setSavingCode(true);
     try {
       await setGroupCode(clean);
     } catch {
-      setInvalid(true);
+      setStorageError(true);
+      setSavingCode(false);
       return;
     }
     setCode(clean);
     setInput('');
     setRemote('loading');
-    const data = await fetchGroup(clean);
-    setInfo(data);
-    setRemote(data ? 'ready' : 'unavailable');
-  }, [input]);
+    const res = await fetchGroupResult(clean);
+    if (res.status === 'ok') {
+      setInfo(res.data);
+      setRemote('ready');
+    } else {
+      setInfo(null);
+      setRemote(res.status);
+    }
+    setSavingCode(false);
+  }, [input, savingCode]);
 
   const onLeave = useCallback(async () => {
+    if (savingCode) return;
+    setSavingCode(true);
     try {
       await setGroupCode('');
     } catch {
-      // không xóa được thì vẫn về trạng thái nhập mã trên màn hình
+      setStorageError(true);
+      return;
+    } finally {
+      setSavingCode(false);
     }
+    setStorageError(false);
     setCode(null);
     setInfo(null);
     setRemote('idle');
-  }, []);
+  }, [savingCode]);
 
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Nhóm của bạn</Text>
+      {storageError ? <Text style={styles.error} accessibilityRole="alert">Chưa đọc hoặc lưu được mã nhóm trên máy. Thử lại; điểm cá nhân vẫn được giữ.</Text> : null}
       {code === null ? (
         <View style={styles.block}>
           <Text style={styles.text}>
@@ -102,10 +131,12 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
             />
             <Pressable
               onPress={onJoin}
+              disabled={savingCode}
+              accessibilityState={{ disabled: savingCode, busy: savingCode }}
               accessibilityRole="button"
               style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
             >
-              <Text style={styles.btnText}>Lưu mã</Text>
+              <Text style={styles.btnText}>{savingCode ? 'Đang lưu…' : 'Lưu mã'}</Text>
             </Pressable>
           </View>
           {invalid ? (
@@ -118,17 +149,24 @@ export function TeamCard({ refreshKey }: Props): React.JSX.Element {
             <Text style={styles.code}>{code}</Text>
             <Pressable
               onPress={onLeave}
+              disabled={savingCode}
+              accessibilityState={{ disabled: savingCode }}
               accessibilityRole="button"
               hitSlop={10}
-              style={({ pressed }) => pressed && styles.pressed}
+              style={({ pressed }) => [styles.changeBtn, pressed && styles.pressed]}
             >
               <Text style={styles.link}>Đổi mã</Text>
             </Pressable>
           </View>
           {remote === 'loading' ? <ActivityIndicator color={theme.primary} /> : null}
-          {remote === 'unavailable' ? (
+          {remote === 'not_found' ? (
             <Text style={styles.text}>
-              Chưa lấy được điểm nhóm. Điểm của bạn vẫn được lưu trên máy.
+              Mã nhóm chưa có điểm. Quét và lưu 1 phiên để tạo bảng điểm.
+            </Text>
+          ) : null}
+          {remote === 'error' ? (
+            <Text style={styles.text}>
+              Không kết nối được máy chủ. Điểm của bạn vẫn được lưu trên máy.
             </Text>
           ) : null}
           {remote === 'ready' && info ? (
@@ -195,10 +233,12 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   input: {
     flex: 1,
+    minWidth: 150,
     minHeight: 48,
     borderRadius: 12,
     borderWidth: 1,
@@ -234,6 +274,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   code: {
+    flexShrink: 1,
     color: theme.text,
     fontSize: 18,
     fontWeight: '700',
@@ -243,6 +284,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  changeBtn: { minHeight: 48, minWidth: 64, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   statRow: {
     flexDirection: 'row',
     gap: 8,

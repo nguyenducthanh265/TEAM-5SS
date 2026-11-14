@@ -17,6 +17,15 @@ export interface GroupInfo {
   top: GroupTopRow[];
 }
 
+export type FetchGroupResult =
+  | { status: 'ok'; data: GroupInfo }
+  | { status: 'not_found' }
+  | { status: 'error' };
+
+type HttpResult =
+  | { ok: true; data: unknown }
+  | { ok: false; status: number | null };
+
 function baseUrl(): string | null {
   const raw = process.env.EXPO_PUBLIC_API_URL;
   if (typeof raw !== 'string') return null;
@@ -30,18 +39,18 @@ export function normalizeGroupCode(raw: string): string | null {
   return /^[A-Z0-9-]{3,20}$/.test(code) ? code : null;
 }
 
-async function request(path: string, init: RequestInit): Promise<unknown | null> {
+async function request(path: string, init: RequestInit): Promise<HttpResult> {
   const base = baseUrl();
-  if (!base) return null;
+  if (!base) return { ok: false, status: null };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(`${base}${path}`, { ...init, signal: controller.signal });
-    if (!res.ok) return null;
+    if (!res.ok) return { ok: false, status: res.status };
     const data: unknown = await res.json();
-    return data;
+    return { ok: true, data };
   } catch {
-    return null;
+    return { ok: false, status: null };
   } finally {
     clearTimeout(timer);
   }
@@ -53,6 +62,21 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function isNum(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
+}
+
+function parseGroupInfo(data: unknown): GroupInfo | null {
+  if (!isRecord(data)) return null;
+  if (typeof data.code !== 'string' || !isNum(data.xp)) return null;
+  if (!isNum(data.members) || !isNum(data.rank)) return null;
+  const top: GroupTopRow[] = [];
+  if (Array.isArray(data.top)) {
+    for (const row of data.top as unknown[]) {
+      if (isRecord(row) && typeof row.code === 'string' && isNum(row.xp)) {
+        top.push({ code: row.code, xp: row.xp });
+      }
+    }
+  }
+  return { code: data.code, xp: data.xp, members: data.members, rank: data.rank, top };
 }
 
 /** Cộng điểm cho nhóm. `items` = số món của phiên vừa lưu. Thành công → true. */
@@ -70,29 +94,28 @@ export async function postGroupScore(
     xpDelta: Math.min(MAX_XP_DELTA, Math.floor(xpDelta)),
     items: Math.max(0, Math.floor(items)),
   });
-  const data = await request('/groups/score', {
+  const res = await request('/groups/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Device-Id': deviceId },
     body,
   });
-  return data !== null;
+  return res.ok;
 }
 
-/** Điểm và bảng xếp hạng của nhóm. Lỗi hoặc dữ liệu sai dạng → null (giao diện ẩn số liệu). */
-export async function fetchGroup(code: string): Promise<GroupInfo | null> {
+/** Điểm và bảng xếp hạng của nhóm, phân biệt 404 (chưa có dữ liệu) với lỗi mạng/timeout. */
+export async function fetchGroupResult(code: string): Promise<FetchGroupResult> {
   const clean = normalizeGroupCode(code);
-  if (!clean) return null;
-  const data = await request(`/groups/${encodeURIComponent(clean)}`, { method: 'GET' });
-  if (!isRecord(data)) return null;
-  if (typeof data.code !== 'string' || !isNum(data.xp)) return null;
-  if (!isNum(data.members) || !isNum(data.rank)) return null;
-  const top: GroupTopRow[] = [];
-  if (Array.isArray(data.top)) {
-    for (const row of data.top as unknown[]) {
-      if (isRecord(row) && typeof row.code === 'string' && isNum(row.xp)) {
-        top.push({ code: row.code, xp: row.xp });
-      }
-    }
+  if (!clean) return { status: 'error' };
+  const res = await request(`/groups/${encodeURIComponent(clean)}`, { method: 'GET' });
+  if (!res.ok) {
+    return res.status === 404 ? { status: 'not_found' } : { status: 'error' };
   }
-  return { code: data.code, xp: data.xp, members: data.members, rank: data.rank, top };
+  const info = parseGroupInfo(res.data);
+  return info ? { status: 'ok', data: info } : { status: 'error' };
+}
+
+/** Điểm và bảng xếp hạng của nhóm. Lỗi hoặc chưa có dữ liệu → null (giữ chữ ký cũ). */
+export async function fetchGroup(code: string): Promise<GroupInfo | null> {
+  const res = await fetchGroupResult(code);
+  return res.status === 'ok' ? res.data : null;
 }
