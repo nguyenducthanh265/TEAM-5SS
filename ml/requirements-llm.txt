@@ -5,3 +5,5 @@ uvicorn[standard]>=0.29
 anthropic>=2.5
 # Hệ thống gọi OpenAI, nhận cả ảnh (examples/openai_system_template.py). Đã kiểm với openai 3.49.0.
 openai>=3.49
+# Nhánh Postgres cho serve/groups.py khi bật DATABASE_URL.
+psycopg[binary]>=3.1

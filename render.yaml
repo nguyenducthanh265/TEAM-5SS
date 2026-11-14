@@ -18,6 +18,8 @@ services:
         sync: false
       - key: OPENAI_MODEL
         sync: false       # đúng model có nhận ảnh mà bạn đã gọi thử thành công
+      - key: OPENAI_REASONING_EFFORT
+        sync: false
       # RULES_PATH không đặt: mặc định <gốc repo>/rules/qd87.json tính từ vị trí ml/examples/waste_classifier.py
       - key: MAX_CHARS
         value: "4000"     # chỉ cho /predict (chữ); ảnh đi qua /classify
