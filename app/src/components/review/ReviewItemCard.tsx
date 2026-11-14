@@ -39,7 +39,7 @@ export function ReviewItemCard({ uri, item, onPress }: Props): React.JSX.Element
         </Text>
         <View style={styles.groupRow}>
           <View style={[styles.dot, { backgroundColor: label.color }]} />
-          <Text style={styles.groupText} numberOfLines={1}>
+          <Text style={styles.groupText}>
             {label.short}
           </Text>
         </View>

@@ -38,7 +38,7 @@ export function FlyLabel({ label, xp, color }: Props) {
           {label}
         </Text>
       </Animated.View>
-      <Text style={styles.xp}>+{xp} XP</Text>
+      <Text style={styles.xp}>Lưu để nhận +{xp} XP</Text>
     </Animated.View>
   );
 }
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 20, fontWeight: '800' },
   xp: {
     marginTop: 6,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '900',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0,0,0,0.6)',

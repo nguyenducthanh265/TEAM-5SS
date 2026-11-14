@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +35,8 @@ export default function ScanScreen() {
   const [flash, setFlash] = useState<Flash | null>(null);
   const [hazardNote, setHazardNote] = useState<string | null>(null);
   const [shootError, setShootError] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
 
   const camRef = useRef<CameraView>(null);
   const modeRef = useRef<ScanMode>(mode);
@@ -48,6 +51,8 @@ export default function ScanScreen() {
   useFocusEffect(
     useCallback(() => {
       setFocused(true);
+      setCameraReady(false);
+      setCameraError(false);
       return () => {
         setFocused(false);
         wantedShots.current = 0;
@@ -157,7 +162,19 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.root}>
-      {focused ? <CameraView ref={camRef} style={StyleSheet.absoluteFill} facing="back" /> : null}
+      {focused ? <StatusBar style="light" /> : null}
+      {focused ? (
+        <CameraView
+          ref={camRef}
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          onCameraReady={() => setCameraReady(true)}
+          onMountError={() => {
+            setCameraError(true);
+            setCameraReady(false);
+          }}
+        />
+      ) : null}
 
       <View style={[styles.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
         <View style={styles.switch} accessibilityRole="tablist">
@@ -181,16 +198,21 @@ export default function ScanScreen() {
         {mode === 'bag' ? <Text style={styles.modeHint}>Chụp cả túi để soát món nằm sai túi</Text> : null}
 
         {hazardNote ? (
-          <Pressable style={styles.hazard} onPress={() => setHazardNote(null)} accessibilityRole="alert">
+          <Pressable style={styles.hazard} onPress={() => setHazardNote(null)} accessibilityRole="button" accessibilityLabel={`${hazardNote}. Chạm để đóng cảnh báo`}>
             <Ionicons name="warning" size={20} color="#FFFFFF" />
             <Text style={styles.hazardText}>{hazardNote}</Text>
             <Ionicons name="close" size={20} color="#FFFFFF" />
           </Pressable>
         ) : null}
         {shootError ? (
-          <Pressable style={styles.shootError} onPress={() => setShootError(false)}>
+          <Pressable style={styles.shootError} onPress={() => setShootError(false)} accessibilityRole="button" accessibilityLabel="Chưa chụp được. Chạm để đóng thông báo rồi thử lại">
             <Text style={styles.shootErrorText}>Chưa chụp được, thử bấm lại</Text>
           </Pressable>
+        ) : null}
+        {cameraError ? (
+          <Text style={styles.cameraError} accessibilityRole="alert">
+            Chưa mở được camera. Chuyển sang tab Cây rồi quay lại để thử lại.
+          </Text>
         ) : null}
       </View>
 
@@ -202,26 +224,35 @@ export default function ScanScreen() {
         {openEntry ? (
           <EntryDetail entry={openEntry} onClose={() => setOpenId(null)} onRemove={remove} />
         ) : null}
-        <ScanTray entries={entries} onOpen={setOpenId} onRetry={retry} onRemove={remove} />
+        {!openEntry ? <ScanTray entries={entries} onOpen={setOpenId} onRetry={retry} onRemove={remove} /> : null}
 
         <View style={styles.bar}>
           <View style={styles.side}>
-            {pendingCount > 0 ? <Text style={styles.sideText}>Đang soi {pendingCount} ảnh</Text> : null}
+            {pendingCount > 0 ? <Text style={styles.sideText} accessibilityLiveRegion="polite">Đang phân loại {pendingCount} ảnh</Text> : null}
           </View>
           <Pressable
             onPress={() => {
               shoot().catch(() => undefined);
             }}
-            style={({ pressed }) => [styles.shutter, pressed ? styles.shutterPressed : null]}
+            disabled={!cameraReady || cameraError}
+            accessibilityState={{ disabled: !cameraReady || cameraError }}
+            style={({ pressed }) => [styles.shutter, pressed ? styles.shutterPressed : null, (!cameraReady || cameraError) && styles.disabled]}
             accessibilityRole="button"
-            accessibilityLabel="Chụp"
+            accessibilityLabel={cameraReady ? 'Chụp ảnh để phân loại rác' : 'Đang mở camera'}
           >
             <View style={styles.shutterInner} />
           </Pressable>
           <View style={styles.side}>
             {reviewItems > 0 ? (
-              <Pressable style={styles.reviewBtn} onPress={() => router.push('/review')} accessibilityRole="button">
-                <Text style={styles.reviewText}>Xem lại {reviewItems} món</Text>
+              <Pressable
+                style={[styles.reviewBtn, pendingCount > 0 && styles.disabled]}
+                disabled={pendingCount > 0}
+                accessibilityState={{ disabled: pendingCount > 0 }}
+                onPress={() => router.push('/review')}
+                accessibilityRole="button"
+                accessibilityLabel={pendingCount > 0 ? `Chờ phân loại xong ${pendingCount} ảnh để xem lại` : `Xem lại ${reviewItems} món`}
+              >
+                <Text style={styles.reviewText}>{pendingCount > 0 ? 'Chờ AI xong' : `Xem lại ${reviewItems} món`}</Text>
                 <Ionicons name="arrow-forward" size={16} color={theme.primaryText} />
               </Pressable>
             ) : null}
@@ -242,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
-  switchBtn: { minWidth: 96, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999, alignItems: 'center' },
+  switchBtn: { minWidth: 96, minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999, alignItems: 'center' },
   switchOn: { backgroundColor: '#FFFFFF' },
   switchText: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
   switchTextOn: { color: theme.text },
@@ -267,6 +298,8 @@ const styles = StyleSheet.create({
   },
   hazardText: { flex: 1, fontSize: 14, lineHeight: 19, fontWeight: '700', color: '#FFFFFF' },
   shootError: {
+    minHeight: 48,
+    justifyContent: 'center',
     marginTop: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -274,6 +307,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
   },
   shootErrorText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  cameraError: { marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: theme.danger, color: '#FFFFFF', fontSize: 15, textAlign: 'center' },
+  disabled: { opacity: 0.5 },
   flashLayer: {
     position: 'absolute',
     top: 0,
@@ -290,6 +325,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 10,
     paddingBottom: 14,
+    backgroundColor: 'rgba(0,0,0,0.65)',
   },
   side: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   sideText: {
@@ -313,6 +349,8 @@ const styles = StyleSheet.create({
   shutterPressed: { transform: [{ scale: 0.92 }], opacity: 0.85 },
   shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#FFFFFF' },
   reviewBtn: {
+    minHeight: 48,
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

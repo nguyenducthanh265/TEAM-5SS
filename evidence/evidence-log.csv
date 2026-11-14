@@ -6,3 +6,7 @@ evidence/test-report.md,2026-11-14,test-backend,"pytest backend đạt 143 passe
 evidence/test-report.md,2026-11-14,test-app,"npx tsc --noEmit sạch lỗi; npx jest --ci đạt 34/34 test (4/4 suites); npm run smoke RESULT: PASS",34
 evidence/test-report.md,2026-11-14,test-rules,"check_rules.py trên rules/qd87.json và --scan-src app/src đều RESULT: PASS; không dùng từ cấm hay tên nhóm viết tay",2
 DISCLOSURE.md,2026-11-14,timeline,"Tag git pre-hackathon tại commit f9eaa52 lúc 10:51 ngày 14/11/2026; mã app và backend hoàn thiện trong ngày thi",10:51
+evidence/predeploy-review.md,2026-11-14,test-backend-final,"Điều phối chạy lại pytest sau ghép: 157 passed và 4 skipped do thiếu sklearn/onnx; kiểm local với provider giả",157
+evidence/predeploy-review.md,2026-11-14,test-mobile-final,"TypeScript PASS; Jest 7 suites và 53 tests PASS; chưa kiểm APK hay điện thoại",53
+evidence/predeploy-review.md,2026-11-14,test-build-smoke-guards,"10 test fixture local PASS; predeploy từ chối đúng khi thiếu URL; smoke local không xác nhận AI",10
+evidence/predeploy-review.md,2026-11-14,android-export-local,"Expo Android export PASS với 1750 modules và 46 assets; đây là HBC local chưa phải APK",1750

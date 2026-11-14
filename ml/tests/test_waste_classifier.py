@@ -129,6 +129,12 @@ def test_postprocess_clips_dedupes_and_limits(wc):
     assert flags["hazardous"] is False and flags["sellable"] is False  # chỉ nhận đúng true của JSON
 
 
+@pytest.mark.parametrize("confidence", [float("inf"), float("-inf"), "Infinity", float("nan")])
+def test_non_finite_confidence_cannot_produce_confident_label(wc, confidence):
+    item = wc.postprocess([_item(confidence=confidence)], "item", wc.GROUP_IDS)[0]
+    assert item["confidence"] == 0.0 and item["group_id"] == "unknown"
+
+
 def test_run_item_mode_sends_image_and_json_format(wc):
     fake = FakeClient(json.dumps({"items": [_item(misplaced=True), _item(name="Vật phụ")]}))
     r = wc.run(_req("item"), timeout=3, client=fake)

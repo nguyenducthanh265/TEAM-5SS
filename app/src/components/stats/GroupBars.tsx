@@ -60,7 +60,7 @@ export function GroupBars({ items }: Props): React.JSX.Element {
         >
           <View style={styles.labelRow}>
             <View style={[styles.dot, { backgroundColor: r.color }]} />
-            <Text style={styles.label} numberOfLines={1}>
+            <Text style={styles.label}>
               {r.short}
             </Text>
             <Text style={styles.count}>{r.count}</Text>

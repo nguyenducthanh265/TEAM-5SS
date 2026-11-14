@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useLayoutEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GroupBars } from '@/components/stats/GroupBars';
@@ -45,6 +45,9 @@ export default function StatsScreen(): React.JSX.Element {
   const [sample, setSample] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [sampleError, setSampleError] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -53,6 +56,8 @@ export default function StatsScreen(): React.JSX.Element {
   useFocusEffect(
     useCallback(() => {
       let alive = true;
+      setLoaded(false);
+      setLoadError(false);
       setRefreshKey((k) => k + 1);
       void (async () => {
         try {
@@ -62,7 +67,7 @@ export default function StatsScreen(): React.JSX.Element {
           setSample(sampleOn);
         } catch {
           if (!alive) return;
-          setHistory([]);
+          setLoadError(true);
         } finally {
           if (alive) setLoaded(true);
         }
@@ -70,19 +75,19 @@ export default function StatsScreen(): React.JSX.Element {
       return () => {
         alive = false;
       };
-    }, []),
+    }, [reloadKey]),
   );
 
   const onToggleSample = useCallback((on: boolean) => {
-    setSample(on);
-    setSampleMode(on).catch(() => undefined);
+    setSampleError(false);
+    setSampleMode(on).then(() => setSample(on)).catch(() => setSampleError(true));
   }, []);
 
   const items = sample ? buildSampleItems() : history;
   const total = items.length;
   const corrected = items.filter((it) => it.corrected).length;
   const sellable = items.filter((it) => it.sellable).length;
-  const isEmpty = loaded && total === 0;
+  const isEmpty = loaded && !loadError && total === 0;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -96,6 +101,15 @@ export default function StatsScreen(): React.JSX.Element {
           ) : null}
         </View>
         <Text style={styles.sub}>{HISTORY_DAYS} ngày gần nhất</Text>
+        {!loaded ? <ActivityIndicator color={theme.primary} accessibilityLabel="Đang tải thống kê" /> : null}
+        {loadError ? (
+          <View style={styles.card}>
+            <Text style={styles.error} accessibilityRole="alert">Chưa đọc được lịch sử đã lưu.</Text>
+            <Pressable style={styles.primaryBtn} accessibilityRole="button" onPress={() => setReloadKey((key) => key + 1)}>
+              <Text style={styles.primaryBtnText}>Tải lại thống kê</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {sample ? (
           <View style={styles.sampleBanner}>
@@ -119,7 +133,7 @@ export default function StatsScreen(): React.JSX.Element {
           </View>
         ) : null}
 
-        {loaded && total > 0 ? (
+        {loaded && !loadError && total > 0 ? (
           <>
             <View style={styles.tiles}>
               <View style={styles.tile}>
@@ -148,6 +162,7 @@ export default function StatsScreen(): React.JSX.Element {
           <View style={styles.switchText}>
             <Text style={styles.cardTitle}>Dữ liệu mẫu</Text>
             <Text style={styles.text}>Chỉ để xem thử bố cục. Không ảnh hưởng điểm của bạn.</Text>
+            {sampleError ? <Text style={styles.error} accessibilityRole="alert">Chưa lưu được chế độ xem. Thử lại.</Text> : null}
           </View>
           <Switch
             value={sample}
@@ -175,6 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flexWrap: 'wrap',
   },
   title: {
     color: theme.text,
@@ -193,7 +209,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   sampleTagText: {
-    color: theme.text,
+    color: theme.primaryText,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -225,6 +241,7 @@ const styles = StyleSheet.create({
     color: theme.textDim,
     fontSize: 14,
   },
+  error: { color: theme.danger, fontSize: 14 },
   emptyTitle: {
     color: theme.text,
     fontSize: 18,

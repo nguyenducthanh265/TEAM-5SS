@@ -41,7 +41,8 @@ Chi tiết từng gói: `profiles/codex-hanoi/ecohanoi/WORK-PACKAGES.md`. Luật
 - [x] Thư viện Python backend đã cài
 - [x] `git tag pre-hackathon`
 - [ ] NGƯỜI: hai người soát chéo `rules/qd87.json` với văn bản, đổi `review_status`
-- [ ] NGƯỜI: cài Node.js LTS + Android platform-tools (`adb`) trên máy này
+- [x] Kiểm Node/npm trên máy: Node v24.15.0, npm 11.12.1 (phiên rà soát 14/11)
+- [ ] NGƯỜI: Android platform-tools (`adb`) chưa có trong PATH của phiên kiểm tra
 - [ ] NGƯỜI: `OPENAI_API_KEY`, `OPENAI_MODEL` (chỉ đặt ở biến môi trường), tài khoản Render, Expo, GitHub
 
 ### Cổng 1 — hợp đồng (11:00–11:20)
@@ -79,3 +80,14 @@ WP-08 → WP-07 → chế độ Cả túi → hiệu ứng cây. Không cắt: W
 ## Nhật ký build (WP-09)
 | APK | Giờ bấm | Giờ xong | demo_check máy 1 | demo_check máy 2 |
 |---|---|---|---|---|
+
+## Vòng rà soát trước deploy bằng Codex và sub-agent (14/11/2026)
+- [x] Ba nhánh theo kit `mobile-ai`: backend AI, reviewer/QA mobile và bảo mật, fullstack UI/UX.
+- [x] Tái hiện và sửa lỗi đọc bộ nhớ làm ghi đè lịch sử; thêm test hồi quy.
+- [x] Kiểm lại envelope AI và độ tin cậy ở cả backend/client; không nâng lỗi thành thành công.
+- [x] Thêm `npm.cmd run predeploy` bắt buộc kiểm `/classify`; smoke local ghi rõ AI chưa xác minh.
+- [x] Thêm hook EAS từ chối URL backend rỗng, mẫu hoặc local trước khi build APK.
+- [x] Chốt QA local bản ghép cuối: `evidence/predeploy-review.md` — backend 157 qua/4 skip; mobile 53 qua; 10 test cổng qua; tsc/rules/Android export PASS. Chưa xác nhận release/demo.
+- [ ] URL Render thật, request vision thật và smoke `/classify` trên URL đó (người dùng xác nhận chưa có URL).
+- [ ] APK cuối trên hai điện thoại, `demo_check.py --repeat 3`, thử mất mạng/từ chối camera/mở lại app.
+- [ ] Hai người soát luật, ảnh thật để đo độ chính xác, bằng chứng người dùng và pitch/disclosure cuối.

@@ -89,11 +89,9 @@ function parseHistory(raw: string | null): SavedItem[] {
 }
 
 async function readItem(key: string): Promise<string | null> {
-  try {
-    return await AsyncStorage.getItem(key);
-  } catch {
-    return null;
-  }
+  // Missing data is null; an I/O failure must reach the caller. Treating it as
+  // an empty account could overwrite existing progress during the next save.
+  return AsyncStorage.getItem(key);
 }
 
 // --- Tiến độ + lịch sử ---
@@ -160,7 +158,15 @@ export function getDeviceId(): Promise<string> {
   if (deviceIdCache) return Promise.resolve(deviceIdCache);
   if (deviceIdPending) return deviceIdPending;
   const pending = withLock(async () => {
-    const saved = await readItem(KEY_DEVICE_ID);
+    let saved: string | null = null;
+    try {
+      saved = await readItem(KEY_DEVICE_ID);
+    } catch {
+      // Classification can still proceed with an in-memory identifier.
+      const id = randomId();
+      deviceIdCache = id;
+      return id;
+    }
     if (saved && /^[A-Za-z0-9-]{8,64}$/.test(saved)) {
       deviceIdCache = saved;
       return saved;

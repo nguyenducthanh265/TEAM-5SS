@@ -21,7 +21,7 @@ export function EntryDetail({ entry, onClose, onRemove }: Props) {
         <Text style={styles.title}>
           {entry.items.length > 1 ? `${entry.items.length} món trong ảnh` : 'Vì sao là nhóm này?'}
         </Text>
-        <Pressable onPress={onClose} accessibilityLabel="Đóng" hitSlop={10}>
+        <Pressable style={styles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Đóng chi tiết ảnh">
           <Ionicons name="close" size={26} color={theme.text} />
         </Pressable>
       </View>
@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
     maxHeight: 320,
   },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 16, fontWeight: '800', color: theme.text },
+  title: { flex: 1, fontSize: 16, fontWeight: '800', color: theme.text },
+  closeBtn: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   scroll: { marginTop: 8 },
   scrollBody: { paddingBottom: 4 },
   item: { marginBottom: 10, paddingLeft: 10, borderLeftWidth: 4 },
@@ -82,6 +83,6 @@ const styles = StyleSheet.create({
   tip: { marginTop: 4, fontSize: 14, lineHeight: 20, color: theme.textDim },
   warn: { marginTop: 4, fontSize: 13, fontWeight: '800', color: theme.warn },
   hazard: { marginTop: 4, fontSize: 14, lineHeight: 20, fontWeight: '700', color: theme.danger },
-  removeBtn: { marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 6 },
+  removeBtn: { minHeight: 48, marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 8 },
   removeText: { fontSize: 14, fontWeight: '700', color: theme.danger },
 });

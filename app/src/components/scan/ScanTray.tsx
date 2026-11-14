@@ -27,7 +27,7 @@ type CardProps = {
   onRemove: (id: string) => void;
 };
 
-const CARD_W = 148;
+const CARD_W = 180;
 
 function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
   const first = entry.items.length > 0 ? entry.items[0] : undefined;
@@ -51,10 +51,10 @@ function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
       <View style={[styles.card, styles.cardError]}>
         <Image source={{ uri: entry.uri }} style={styles.thumb} />
         <View style={styles.body}>
-          <Text style={styles.errorTitle} numberOfLines={1}>
+          <Text style={styles.errorTitle}>
             Chưa phân tích được
           </Text>
-          <Text style={styles.dim} numberOfLines={1}>
+          <Text style={styles.dim}>
             {errorText(entry.errorKind)}
           </Text>
           <View style={styles.actions}>
@@ -62,12 +62,11 @@ function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
               style={styles.retryBtn}
               onPress={() => onRetry(entry.id)}
               accessibilityRole="button"
-              hitSlop={6}
             >
               <Ionicons name="refresh" size={14} color={theme.primaryText} />
               <Text style={styles.retryText}>Thử lại</Text>
             </Pressable>
-            <Pressable onPress={() => onRemove(entry.id)} accessibilityLabel="Bỏ ảnh này" hitSlop={8}>
+            <Pressable style={styles.iconBtn} onPress={() => onRemove(entry.id)} accessibilityRole="button" accessibilityLabel="Bỏ ảnh này">
               <Ionicons name="close-circle" size={24} color={theme.textDim} />
             </Pressable>
           </View>
@@ -81,7 +80,7 @@ function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
       <View style={[styles.card, styles.cardPending]}>
         <Image source={{ uri: entry.uri }} style={styles.thumb} />
         <View style={styles.body}>
-          <Text style={styles.emptyText} numberOfLines={3}>
+          <Text style={styles.emptyText}>
             Chưa thấy rõ món, chụp lại gần hơn
           </Text>
           <Pressable style={styles.dropBtn} onPress={() => onRemove(entry.id)} accessibilityRole="button" hitSlop={6}>
@@ -109,7 +108,7 @@ function Card({ entry, onOpen, onRetry, onRemove }: CardProps) {
           {more > 0 ? ` +${more}` : ''}
         </Text>
         <View style={[styles.chip, { backgroundColor: color }]}>
-          <Text style={[styles.chipText, { color: textOn(color) }]} numberOfLines={1}>
+          <Text style={[styles.chipText, { color: textOn(color) }]}>
             {safeGroupShort(first.groupId)}
           </Text>
         </View>
@@ -210,6 +209,8 @@ const styles = StyleSheet.create({
   dim: { marginTop: 2, fontSize: 12, color: theme.textDim },
   actions: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   retryBtn: {
+    minHeight: 48,
+    flexShrink: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -219,8 +220,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary,
   },
   retryText: { color: theme.primaryText, fontSize: 13, fontWeight: '800' },
+  iconBtn: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 13, lineHeight: 17, color: theme.text, fontWeight: '600' },
   dropBtn: {
+    minHeight: 48,
+    justifyContent: 'center',
     marginTop: 6,
     alignSelf: 'flex-start',
     paddingHorizontal: 10,

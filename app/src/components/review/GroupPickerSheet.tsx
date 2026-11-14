@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getGroups } from '@/lib/rules';
 import { theme } from '@/lib/theme';
@@ -23,12 +24,18 @@ export function GroupPickerSheet({
   onClose,
 }: Props): React.JSX.Element {
   const groups = getGroups();
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Đóng" />
-        <View style={styles.sheet}>
-          <Text style={styles.title} numberOfLines={2}>
+        <Pressable style={styles.backdrop} onPress={onClose} accessible={false} />
+        <ScrollView
+          style={[styles.sheet, { marginTop: insets.top + 16 }]}
+          contentContainerStyle={[styles.sheetContent, { paddingBottom: Math.max(insets.bottom, 16) }]}
+          accessibilityViewIsModal
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title} accessibilityRole="header">
             {itemName}
           </Text>
           <Text style={styles.hint}>Món này thuộc nhóm nào?</Text>
@@ -49,7 +56,7 @@ export function GroupPickerSheet({
                 <View style={[styles.dot, { backgroundColor: g.color_hex }]} />
                 <View style={styles.optionText}>
                   <Text style={styles.optionShort}>{g.short}</Text>
-                  <Text style={styles.optionName} numberOfLines={2}>
+                  <Text style={styles.optionName}>
                     {g.name}
                   </Text>
                 </View>
@@ -71,7 +78,7 @@ export function GroupPickerSheet({
           >
             <Text style={styles.closeText}>Đóng</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -91,11 +98,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
   sheet: {
+    flexGrow: 0,
+    flexShrink: 1,
     backgroundColor: theme.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+  },
+  sheetContent: {
     padding: theme.pad,
-    paddingBottom: 28,
     gap: 10,
   },
   title: {
@@ -161,7 +171,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   close: {
-    minHeight: 44,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },

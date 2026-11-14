@@ -140,7 +140,7 @@ def _confidence(value):
         c = float(value)
     except (TypeError, ValueError):
         return 0.0
-    if math.isnan(c):
+    if not math.isfinite(c):
         return 0.0
     return max(0.0, min(1.0, c))
 

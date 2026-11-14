@@ -6,6 +6,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, '..');
 
 const failures = [];
+const requireApi = process.argv.includes('--require-api');
+const rules = JSON.parse(fs.readFileSync(path.join(appRoot, 'src/assets/qd87.json'), 'utf8'));
+const groupIds = new Set(rules.groups.map((group) => group.id));
+
+function validItem(item) {
+  return item && typeof item === 'object' &&
+    typeof item.name === 'string' && item.name.trim().length > 0 && item.name.length <= 40 &&
+    groupIds.has(item.groupId) && typeof item.confidence === 'number' &&
+    Number.isFinite(item.confidence) && item.confidence >= 0.5 && item.confidence <= 1 &&
+    typeof item.reason === 'string' && item.reason.length <= 120 &&
+    (item.tip === undefined || (typeof item.tip === 'string' && item.tip.length <= 80)) &&
+    ['hazardous', 'sellable', 'misplaced'].every((key) => item[key] === undefined || typeof item[key] === 'boolean');
+}
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -76,6 +89,9 @@ for (const file of walkFiles(srcDir)) {
   }
 }
 check('no API key in src/', secretHits.length === 0, secretHits.join(', '));
+check('rules copy matches source',
+  fs.readFileSync(path.join(appRoot, 'src/assets/qd87.json'), 'utf8') ===
+  fs.readFileSync(path.join(appRoot, '../rules/qd87.json'), 'utf8'));
 
 // 4. Nếu có SMOKE_API_URL: POST /classify với selftest.jpg và kiểm source === 'ai'
 const apiUrl = (process.env.SMOKE_API_URL ?? '').trim().replace(/\/+$/, '');
@@ -101,7 +117,8 @@ if (apiUrl) {
         check('POST /classify (SMOKE_API_URL)', false, `HTTP ${res.status}`);
       } else {
         const data = await res.json();
-        const ok = data?.source === 'ai' && Array.isArray(data?.items);
+        const ok = data?.source === 'ai' && !data.error && Array.isArray(data?.items) &&
+          data.items.length === 1 && data.items.every(validItem);
         check(
           'POST /classify (SMOKE_API_URL)',
           ok,
@@ -115,11 +132,12 @@ if (apiUrl) {
     }
   }
 } else {
-  console.log('SKIP POST /classify (SMOKE_API_URL not set)');
+  if (requireApi) check('POST /classify required', false, 'SMOKE_API_URL not set');
+  else console.log('SKIP POST /classify (SMOKE_API_URL not set; local checks only)');
 }
 
 if (failures.length === 0) {
-  console.log('RESULT: PASS');
+  console.log(apiUrl ? 'RESULT: PASS source=ai (API only; device QA still required)' : 'RESULT: PASS LOCAL-ONLY (AI NOT VERIFIED)');
   process.exit(0);
 } else {
   console.log(`RESULT: FAIL ${failures.join('; ')}`);

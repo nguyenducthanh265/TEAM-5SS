@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TreeIllustration } from '@/components/tree/TreeIllustration';
@@ -28,6 +28,9 @@ export default function TreeScreen(): React.JSX.Element {
   const [displayXp, setDisplayXp] = useState(0);
   const [sample, setSample] = useState(false);
   const [wateringKey, setWateringKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const countTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const gainedRef = useRef(0);
@@ -49,6 +52,8 @@ export default function TreeScreen(): React.JSX.Element {
   useFocusEffect(
     useCallback(() => {
       let alive = true;
+      setLoading(true);
+      setLoadError(false);
       const pendingGained = gainedRef.current;
 
       if (pendingGained > 0) {
@@ -85,8 +90,9 @@ export default function TreeScreen(): React.JSX.Element {
           }
         } catch {
           if (!alive) return;
-          setProgress(EMPTY_PROGRESS);
-          setDisplayXp(0);
+          setLoadError(true);
+        } finally {
+          if (alive) setLoading(false);
         }
       })();
 
@@ -94,7 +100,7 @@ export default function TreeScreen(): React.JSX.Element {
         alive = false;
         stopCountAnimation();
       };
-    }, [router, stopCountAnimation]),
+    }, [reloadKey, router, stopCountAnimation]),
   );
 
   const stage = stageFor(displayXp);
@@ -117,6 +123,17 @@ export default function TreeScreen(): React.JSX.Element {
           ) : null}
         </View>
 
+        {loading ? <ActivityIndicator color={theme.primary} accessibilityLabel="Đang tải tiến độ cây" /> : null}
+        {loadError ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText} accessibilityRole="alert">Chưa đọc được tiến độ đã lưu. Thử tải lại trước khi xem điểm.</Text>
+            <Pressable accessibilityRole="button" style={styles.retryBtn} onPress={() => setReloadKey((key) => key + 1)}>
+              <Text style={styles.stageBadgeText}>Tải lại tiến độ</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!loading && !loadError ? <>
         <View style={styles.treeCard}>
           <View style={styles.stageBadgeRow}>
             <View style={styles.stageBadge}>
@@ -138,7 +155,7 @@ export default function TreeScreen(): React.JSX.Element {
           <TreeIllustration stageId={stage.id} thirsty={thirsty} wateringKey={wateringKey} />
 
           <Text style={styles.thirstHint}>
-            {thirsty ? 'Quét 1 món hôm nay để tưới cây' : 'Tuyệt vời! Cây đang xanh tốt'}
+            {thirsty ? 'Quét và lưu 1 món hôm nay để tưới cây' : 'Tuyệt vời! Cây đang xanh tốt'}
           </Text>
         </View>
 
@@ -148,7 +165,7 @@ export default function TreeScreen(): React.JSX.Element {
             <Text style={styles.statLabel}>
               {nextXp === null ? 'Cấp cao nhất' : `Mốc kế: ${nextXp} XP`}
             </Text>
-            <View style={styles.barTrack}>
+            <View style={styles.barTrack} accessibilityRole="progressbar" accessibilityLabel="Tiến độ cấp cây" accessibilityValue={{ min: 0, max: 100, now: Math.round(progressRatio * 100) }}>
               <View style={[styles.barFill, { width: `${Math.round(progressRatio * 100)}%` }]} />
             </View>
           </View>
@@ -161,6 +178,7 @@ export default function TreeScreen(): React.JSX.Element {
             <Text style={styles.statLabel}>Chuỗi ngày</Text>
           </View>
         </View>
+        </> : null}
 
         <Pressable
           onPress={() => router.navigate('/(tabs)/scan')}
@@ -191,6 +209,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   title: {
     fontSize: 22,
@@ -224,6 +244,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   stageBadge: {
     flexDirection: 'row',
@@ -272,6 +294,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  errorCard: { padding: 12, backgroundColor: theme.card, borderRadius: theme.radius, borderWidth: 1, borderColor: theme.danger },
+  errorText: { color: theme.danger, fontSize: 14 },
+  retryBtn: { minHeight: 48, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8 },
   statCard: {
     flex: 2,
     backgroundColor: theme.card,

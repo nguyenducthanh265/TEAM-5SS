@@ -98,4 +98,4 @@ Thứ tự cắt: WP-08 → WP-07 → chế độ Cả túi → hiệu ứng câ
 | Dùng Codex chưa đủ thực chất | Giao Codex phần thật (sửa lỗi sau tsc, selftest, build), chụp phiên, khai trung thực trong `DISCLOSURE.md` |
 
 ## 10. Trạng thái hiện tại (cập nhật lúc tạo tài liệu)
-Đã xong: kit cài, `rules/qd87.json` qua `check_rules.py`, `PLAN.md`, `contracts.ts`, tag `pre-hackathon`. Mã app/backend do các sub agent viết dở đã bị dừng, chưa chạy `tsc`/pytest, coi là bản nháp chưa kiểm chứng cho đến khi qua lệnh cổng.
+Cập nhật rà soát Codex ngày 14/11/2026: ba sub-agent kiểm backend, mobile/bảo mật và UI/UX; điều phối chạy lại bản ghép. Backend 157 test qua/4 skip, mobile 53 test qua, 10 test cổng qua; TypeScript, kiểm luật và Android export PASS local. Xem `evidence/predeploy-review.md` và `evidence/deploy-checklist.md`. Chưa có URL backend thật, chưa xác nhận provider/APK/hai điện thoại, luật chưa được hai người soát; không đánh dấu các cổng deploy/demo đã qua.

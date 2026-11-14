@@ -88,7 +88,7 @@ export function TreeIllustration({
   const leafBack = thirsty ? '#7A9159' : LEAF_DEEP;
 
   return (
-    <View style={styles.stageBox}>
+    <View style={styles.stageBox} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Animated.View
         pointerEvents="none"
         style={[

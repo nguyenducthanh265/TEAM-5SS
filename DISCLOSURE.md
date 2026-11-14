@@ -17,6 +17,7 @@ Luật: được dùng thư viện, SDK, API, starter template; phải nói rõ 
 ## Công cụ AI đã dùng để viết code
 - Claude Code: điều phối và các sub agent viết [NHÓM ĐIỀN ĐÚNG THỰC TẾ: liệt kê gói WP do Claude Code viết]. Việc bắt đầu lúc khoảng 10:50, trước mốc 11:00 của BTC.
 - Codex: [NHÓM ĐIỀN ĐÚNG THỰC TẾ: gói việc Codex làm, đường dẫn ảnh chụp phiên]. Luật giải yêu cầu dùng Codex thực chất; nếu Codex không làm phần nào thì ghi đúng như vậy.
+- Phiên Codex rà soát trước deploy ngày 14/11/2026: điều phối ba sub-agent của kit `mobile-ai` kiểm backend, QA/bảo mật mobile và UI/UX; sửa lỗi bảo toàn dữ liệu khi storage lỗi, hậu kiểm phản hồi AI và cổng smoke/build; cải thiện giao diện và chạy kiểm thử local. Kết quả và giới hạn nằm trong `evidence/predeploy-review.md`; ảnh chụp phiên do nhóm bổ sung, chưa xác nhận deploy/APK hay model thật.
 
 ## Bằng chứng mốc thời gian
 - Tag git `pre-hackathon`: commit f9eaa52, 10:51 ngày 14/11/2026.

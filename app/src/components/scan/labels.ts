@@ -20,11 +20,20 @@ export function textOn(hex: string): string {
   if (!m) return '#14261A';
   const raw = m[1];
   const full = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw;
-  const r = parseInt(full.slice(0, 2), 16);
-  const g = parseInt(full.slice(2, 4), 16);
-  const b = parseInt(full.slice(4, 6), 16);
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.6 ? '#14261A' : '#FFFFFF';
+  const linear = (value: number) => {
+    const s = value / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = (value: string) =>
+    0.2126 * linear(parseInt(value.slice(0, 2), 16)) +
+    0.7152 * linear(parseInt(value.slice(2, 4), 16)) +
+    0.0722 * linear(parseInt(value.slice(4, 6), 16));
+  const bg = luminance(full);
+  const dark = luminance('14261A');
+  const whiteContrast = 1.05 / (bg + 0.05);
+  const darkContrast = (Math.max(bg, dark) + 0.05) / (Math.min(bg, dark) + 0.05);
+  if (whiteContrast < 4.5 && darkContrast < 4.5) return '#000000';
+  return whiteContrast >= darkContrast ? '#FFFFFF' : '#14261A';
 }
 
 export function errorText(kind: ScanEntry['errorKind']): string {

@@ -38,6 +38,22 @@ beforeEach(async () => {
 });
 
 describe('store', () => {
+  it('read failure rejects a save without overwriting existing progress or history', async () => {
+    await saveSession([entry('existing', ['Lon'])]);
+    const before = await AsyncStorage.getItem('ecohanoi.history.v1');
+    jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('storage unavailable'));
+    await expect(saveSession([entry('new', ['Chai'])])).rejects.toThrow('storage unavailable');
+    expect(await AsyncStorage.getItem('ecohanoi.history.v1')).toBe(before);
+    expect((await getProgress()).xp).toBe(10);
+    await saveSession([entry('retry', ['Chai'])]);
+    expect((await getProgress()).xp).toBe(20);
+  });
+
+  it('read failure is surfaced to the screen instead of showing an empty account', async () => {
+    jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('read failed'));
+    await expect(getProgress()).rejects.toThrow('read failed');
+  });
+
   it('người dùng mới: mọi số bằng 0, lịch sử rỗng', async () => {
     const progress = await getProgress();
     expect(progress).toEqual({ xp: 0, streakDays: 0, totalItems: 0, correctedItems: 0 });
