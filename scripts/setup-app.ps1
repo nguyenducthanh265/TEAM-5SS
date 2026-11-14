@@ -1,4 +1,4 @@
-# Dựng khung Expo quanh mã nguồn đã có trong app/src. Cần Node.js LTS (node, npm, npx trong PATH).
+﻿# Dựng khung Expo quanh mã nguồn đã có trong app/src. Cần Node.js LTS (node, npm, npx trong PATH).
 #   powershell -ExecutionPolicy Bypass -File scripts\setup-app.ps1
 # Chạy lại được: không ghi đè app/src, chỉ tạo lại file cấu hình khi chưa có package.json.
 $ErrorActionPreference = 'Stop'
